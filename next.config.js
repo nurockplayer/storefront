@@ -13,6 +13,10 @@ const config = {
 		// (max 3 concurrent requests + 200ms delay between requests)
 	},
 	images: {
+		// In development, Next.js image optimizer runs server-side and cannot reach
+		// http://localhost:8000 (Saleor) from inside Docker. Disable optimization so
+		// the browser fetches images directly.
+		unoptimized: process.env.NODE_ENV === "development",
 		remotePatterns: [
 			{
 				// Saleor Cloud CDN
