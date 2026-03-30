@@ -6,7 +6,7 @@ import { CheckoutAddLineDocument, type ProductDetailsQuery } from "@/gql/graphql
 import { executeAuthenticatedGraphQL } from "@/lib/graphql";
 import * as Checkout from "@/lib/checkout";
 
-import { AddToCart } from "./add-to-cart";
+import { AddToCart, AddToCartForm } from "./add-to-cart";
 import { VariantSelectionSection } from "./variant-selection";
 import { StickyBar } from "./sticky-bar";
 import { Badge } from "@/ui/components/ui/badge";
@@ -69,13 +69,13 @@ export async function VariantSectionDynamic({ product, channel, searchParams }: 
 			: null;
 
 	// Server action for adding to cart
-	async function addToCart() {
+	async function addToCart(
+		_prevState: { error: string } | null,
+		_formData: FormData,
+	): Promise<{ error: string } | null> {
 		"use server";
 
-		if (!selectedVariantID) {
-			// Silently return - button should be disabled if no variant selected
-			return;
-		}
+		if (!selectedVariantID) return null;
 
 		try {
 			const checkout = await Checkout.findOrCreate({
@@ -83,11 +83,7 @@ export async function VariantSectionDynamic({ product, channel, searchParams }: 
 				channel: channel,
 			});
 
-			if (!checkout) {
-				// Log error server-side, UI will show via ErrorBoundary if needed
-				console.error("Add to cart: Failed to create checkout");
-				return;
-			}
+			if (!checkout) return { error: "Unable to create checkout. Please try again." };
 
 			await Checkout.saveIdToCookie(channel, checkout.id);
 
@@ -99,16 +95,18 @@ export async function VariantSectionDynamic({ product, channel, searchParams }: 
 				cache: "no-cache",
 			});
 
-			if (!addResult.ok) {
-				console.error("Add to cart failed:", addResult.error.message);
-				return;
+			if (!addResult.ok) return { error: addResult.error.message };
+
+			const mutationErrors = addResult.data.checkoutLinesAdd?.errors;
+			if (mutationErrors && mutationErrors.length > 0) {
+				return { error: mutationErrors[0].message ?? "Failed to add item. Please try again." };
 			}
 
-			revalidatePath("/cart");
+			revalidatePath("/", "layout");
+			return null;
 		} catch (error) {
-			// Log error server-side - the UI feedback comes from cart drawer/badge update
-			// For explicit error UI, would need useActionState (separate enhancement)
 			console.error("Add to cart failed:", error);
+			return { error: "Failed to add item. Please try again." };
 		}
 	}
 
@@ -130,7 +128,7 @@ export async function VariantSectionDynamic({ product, channel, searchParams }: 
 			</div>
 
 			{/* Rest of variant section - order:3 so it appears BELOW the h1 */}
-			<form action={addToCart} className="order-3 mt-4 space-y-6">
+			<AddToCartForm action={addToCart}>
 				{/* Variant Selectors */}
 				<VariantSelectionSection
 					variants={variants}
@@ -150,7 +148,7 @@ export async function VariantSectionDynamic({ product, channel, searchParams }: 
 
 				{/* Sticky Add to Cart Bar (Mobile) */}
 				<StickyBar productName={product.name} price={price} show={!isAddToCartDisabled} />
-			</form>
+			</AddToCartForm>
 		</>
 	);
 }

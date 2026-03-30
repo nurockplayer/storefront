@@ -1,9 +1,28 @@
 "use client";
 
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/ui/components/ui/button";
 import { cn } from "@/lib/utils";
+
+type ActionState = { error: string } | null;
+
+export function AddToCartForm({
+	action,
+	children,
+}: {
+	action: (state: ActionState, formData: FormData) => Promise<ActionState>;
+	children: React.ReactNode;
+}) {
+	const [state, formAction] = useActionState(action, null);
+	return (
+		<form action={formAction} className="order-3 mt-4 space-y-6">
+			{state?.error && <p className="text-sm font-medium text-destructive">{state.error}</p>}
+			{children}
+		</form>
+	);
+}
 
 interface AddToCartProps {
 	price: string;
