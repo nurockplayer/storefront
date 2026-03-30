@@ -1,0 +1,13 @@
+query HomepageBanner($slug: String!) {
+	page(slug: $slug) {
+		title
+		attributes {
+			attribute {
+				slug
+			}
+			values {
+				plainText
+			}
+		}
+	}
+}
