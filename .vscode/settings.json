@@ -39,5 +39,8 @@
 		"**/src/gql/**": true,
 		"**/node_modules": true,
 		"**/.next": true
-	}
+	},
+	"i18n-ally.localesPaths": [
+		"src/checkout/content/locales"
+	]
 }
