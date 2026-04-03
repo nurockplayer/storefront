@@ -5,6 +5,7 @@
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE",
 	"scripts": {
+		"preinstall": "npx only-allow pnpm",
 		"dev": "next dev --webpack",
 		"dev:webpack": "next dev --webpack",
 		"dev:turbopack": "next dev",
