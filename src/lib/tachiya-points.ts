@@ -36,7 +36,9 @@ export function buildTachiyaPointsBalanceUrl(baseUrl: string, userId: string): s
 
 export function buildTachiyaPointsLedgerUrl(baseUrl: string, userId: string, limit = 3): string {
 	const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
-	return `${normalizedBaseUrl}/points/ledger?user_id=${encodeURIComponent(userId)}&limit=${limit}`;
+	return `${normalizedBaseUrl}/points/ledger?user_id=${encodeURIComponent(
+		userId,
+	)}&limit=${normalizeLedgerLimit(limit)}`;
 }
 
 export async function fetchTachiyaPointsBalance({
@@ -173,4 +175,11 @@ function mapLedgerEntry(entry: unknown): TachiyaPointsLedgerEntry | null {
 		expiresAt: payload.expires_at ?? null,
 		createdAt: payload.created_at,
 	};
+}
+
+function normalizeLedgerLimit(limit: number): number {
+	if (!Number.isFinite(limit)) {
+		return 3;
+	}
+	return Math.min(100, Math.max(1, Math.trunc(limit)));
 }

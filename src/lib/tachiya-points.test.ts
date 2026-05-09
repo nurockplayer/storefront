@@ -20,6 +20,24 @@ describe("buildTachiyaPointsLedgerUrl", () => {
 			"http://localhost:8001/points/ledger?user_id=user%20with%20spaces&limit=3",
 		);
 	});
+
+	it("clamps the ledger limit to the API bounds", () => {
+		expect(buildTachiyaPointsLedgerUrl("http://localhost:8001", "user-1", 0)).toBe(
+			"http://localhost:8001/points/ledger?user_id=user-1&limit=1",
+		);
+		expect(buildTachiyaPointsLedgerUrl("http://localhost:8001", "user-1", 999)).toBe(
+			"http://localhost:8001/points/ledger?user_id=user-1&limit=100",
+		);
+	});
+
+	it("normalizes decimal and non-finite ledger limits", () => {
+		expect(buildTachiyaPointsLedgerUrl("http://localhost:8001", "user-1", 3.7)).toBe(
+			"http://localhost:8001/points/ledger?user_id=user-1&limit=3",
+		);
+		expect(buildTachiyaPointsLedgerUrl("http://localhost:8001", "user-1", Number.NaN)).toBe(
+			"http://localhost:8001/points/ledger?user_id=user-1&limit=3",
+		);
+	});
 });
 
 describe("fetchTachiyaPointsBalance", () => {
