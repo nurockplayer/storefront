@@ -1,1 +1,12 @@
-{}
+{
+	"account": {
+		"pointsBalance": {
+			"label": "點數",
+			"emptyValue": "0",
+			"emptyDescription": "目前沒有點數",
+			"unavailableLabel": "點數暫時無法顯示",
+			"unavailableDescription": "請稍後再試。",
+			"notConfiguredDescription": "點數功能尚未啟用。"
+		}
+	}
+}

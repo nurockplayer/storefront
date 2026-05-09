@@ -1,1 +1,12 @@
-{}
+{
+	"account": {
+		"pointsBalance": {
+			"label": "Points",
+			"emptyValue": "0",
+			"emptyDescription": "No points yet",
+			"unavailableLabel": "Points unavailable",
+			"unavailableDescription": "Try again later.",
+			"notConfiguredDescription": "Points are not available yet."
+		}
+	}
+}

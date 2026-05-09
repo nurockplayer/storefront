@@ -41,6 +41,20 @@ describe("fetchTachiyaPointsBalance", () => {
 		expect(fetchImpl).not.toHaveBeenCalled();
 	});
 
+	it("returns a skipped result when user id is missing", async () => {
+		const fetchImpl = vi.fn();
+
+		const result = await fetchTachiyaPointsBalance({
+			userId: "",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "missing-user" });
+		expect(fetchImpl).not.toHaveBeenCalled();
+	});
+
 	it("returns a failed result when Tachiya returns an error", async () => {
 		const fetchImpl = vi.fn(async () => new Response("nope", { status: 500 }));
 

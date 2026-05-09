@@ -1,6 +1,6 @@
 export type TachiyaPointsBalanceResult =
 	| { ok: true; userId: string; balance: number }
-	| { ok: false; reason: "missing-config" | "request-failed" };
+	| { ok: false; reason: "missing-config" | "missing-user" | "request-failed" };
 
 type FetchImpl = typeof fetch;
 
@@ -22,6 +22,10 @@ export async function fetchTachiyaPointsBalance({
 	internalSecret,
 	fetchImpl = fetch,
 }: FetchTachiyaPointsBalanceOptions): Promise<TachiyaPointsBalanceResult> {
+	if (!userId) {
+		return { ok: false, reason: "missing-user" };
+	}
+
 	if (!baseUrl || !internalSecret) {
 		return { ok: false, reason: "missing-config" };
 	}
