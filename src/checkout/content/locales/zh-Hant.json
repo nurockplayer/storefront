@@ -6,7 +6,12 @@
 			"emptyDescription": "目前沒有點數",
 			"unavailableLabel": "點數暫時無法顯示",
 			"unavailableDescription": "請稍後再試。",
-			"notConfiguredDescription": "點數功能尚未啟用。"
+			"notConfiguredDescription": "點數功能尚未啟用。",
+			"recentActivityLabel": "近期紀錄",
+			"ledgerEmptyDescription": "目前沒有近期點數紀錄",
+			"ledgerUnavailableDescription": "近期紀錄暫時無法顯示",
+			"creditLabel": "取得",
+			"debitLabel": "使用"
 		}
 	}
 }

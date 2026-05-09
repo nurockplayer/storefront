@@ -6,7 +6,12 @@
 			"emptyDescription": "No points yet",
 			"unavailableLabel": "Points unavailable",
 			"unavailableDescription": "Try again later.",
-			"notConfiguredDescription": "Points are not available yet."
+			"notConfiguredDescription": "Points are not available yet.",
+			"recentActivityLabel": "Recent activity",
+			"ledgerEmptyDescription": "No recent points activity",
+			"ledgerUnavailableDescription": "Recent activity is unavailable.",
+			"creditLabel": "Earned",
+			"debitLabel": "Used"
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import type { TachiyaPointsBalanceResult } from "@/lib/tachiya-points";
+import type { TachiyaPointsBalanceResult, TachiyaPointsLedgerResult } from "@/lib/tachiya-points";
 
 export interface PointsBalanceMessages {
 	label: string;
@@ -7,6 +7,11 @@ export interface PointsBalanceMessages {
 	unavailableLabel: string;
 	unavailableDescription: string;
 	notConfiguredDescription: string;
+	recentActivityLabel: string;
+	ledgerEmptyDescription: string;
+	ledgerUnavailableDescription: string;
+	creditLabel: string;
+	debitLabel: string;
 }
 
 export type PointsBalanceView =
@@ -15,17 +20,36 @@ export type PointsBalanceView =
 			label: string;
 			value: string;
 			description: string | null;
+			ledger: PointsLedgerView;
 	  }
 	| {
 			status: "not-configured" | "unavailable";
 			label: string;
 			value: null;
 			description: string;
+			ledger: null;
 	  };
+
+export type PointsLedgerView = {
+	status: "ready" | "empty" | "unavailable";
+	label: string;
+	description: string | null;
+	entries: PointsLedgerEntryView[];
+};
+
+export interface PointsLedgerEntryView {
+	id: string;
+	amount: string;
+	kindLabel: string;
+	sourceType: string;
+	referenceId: string;
+	createdAt: string;
+}
 
 export function buildPointsBalanceView(
 	result: TachiyaPointsBalanceResult,
 	messages: PointsBalanceMessages,
+	ledgerResult?: TachiyaPointsLedgerResult,
 ): PointsBalanceView {
 	if (!result.ok) {
 		return {
@@ -39,6 +63,7 @@ export function buildPointsBalanceView(
 				result.reason === "missing-config" || result.reason === "missing-user"
 					? messages.notConfiguredDescription
 					: messages.unavailableDescription,
+			ledger: null,
 		};
 	}
 
@@ -48,6 +73,7 @@ export function buildPointsBalanceView(
 			label: messages.label,
 			value: messages.emptyValue,
 			description: messages.emptyDescription,
+			ledger: buildLedgerView(ledgerResult, messages),
 		};
 	}
 
@@ -56,5 +82,43 @@ export function buildPointsBalanceView(
 		label: messages.label,
 		value: result.balance.toLocaleString(),
 		description: null,
+		ledger: buildLedgerView(ledgerResult, messages),
+	};
+}
+
+function buildLedgerView(
+	result: TachiyaPointsLedgerResult | undefined,
+	messages: PointsBalanceMessages,
+): PointsLedgerView {
+	if (!result?.ok) {
+		return {
+			status: result ? "unavailable" : "empty",
+			label: messages.recentActivityLabel,
+			description: result ? messages.ledgerUnavailableDescription : messages.ledgerEmptyDescription,
+			entries: [],
+		};
+	}
+
+	if (result.entries.length === 0) {
+		return {
+			status: "empty",
+			label: messages.recentActivityLabel,
+			description: messages.ledgerEmptyDescription,
+			entries: [],
+		};
+	}
+
+	return {
+		status: "ready",
+		label: messages.recentActivityLabel,
+		description: null,
+		entries: result.entries.map((entry) => ({
+			id: entry.id,
+			amount: `${entry.amount > 0 ? "+" : ""}${entry.amount.toLocaleString()}`,
+			kindLabel: entry.amount >= 0 ? messages.creditLabel : messages.debitLabel,
+			sourceType: entry.sourceType,
+			referenceId: entry.referenceId,
+			createdAt: entry.createdAt,
+		})),
 	};
 }
