@@ -253,6 +253,9 @@ NEXT_PUBLIC_STOREFRONT_URL=   # For canonical URLs and OG images
 REVALIDATE_SECRET=            # Manual cache invalidation
 SALEOR_WEBHOOK_SECRET=        # Webhook HMAC verification
 SALEOR_APP_TOKEN=             # For channels query
+NEXT_PUBLIC_TACHIYA_API_URL=  # Browser-visible Tachiya URL for coupon redemption UI
+TACHIYA_API_URL=              # Server-side Tachiya URL for account points balance
+TACHIYA_INTERNAL_SHARED_SECRET= # Server-side secret for protected Tachiya APIs; never expose as NEXT_PUBLIC_*
 ```
 
 ---
