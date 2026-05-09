@@ -12,7 +12,7 @@
 		"build": "next build",
 		"start": "next start",
 		"predev": "pnpm run generate:all",
-		"prebuild": "pnpm run generate:all",
+		"prebuild": "sh -c 'if [ \"$SKIP_CODEGEN\" = \"1\" ]; then echo \"Skipping GraphQL code generation during image build\"; else pnpm run generate:all; fi'",
 		"lint": "eslint",
 		"lint:fix": "eslint --fix",
 		"generate": "graphql-codegen --config .graphqlrc.ts",

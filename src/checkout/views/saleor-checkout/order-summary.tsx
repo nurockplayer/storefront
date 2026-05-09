@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type FC } from "react";
+import { useEffect, useRef, useState, type FC } from "react";
 import Image from "next/image";
 import { Tag, ShieldCheck, RotateCcw, Truck, ChevronDown, ShoppingBag } from "lucide-react";
 import { Button } from "@/ui/components/ui/button";
 import { Input } from "@/ui/components/ui/input";
 import { cn } from "@/lib/utils";
 import { type CheckoutFragment, type OrderFragment } from "@/checkout/graphql";
+import { buildTachiyaCouponsUrl, resolveTachiyaRedemptionToken } from "@/checkout/lib/tachiya-coupons";
 import { localeConfig } from "@/config/locale";
 
 // ============================================================================
@@ -38,6 +39,11 @@ interface OrderSummaryProps {
 	checkout?: CheckoutFragment;
 	order?: OrderFragment;
 	editable?: boolean;
+}
+
+interface CouponResponseItem {
+	voucher_code: string;
+	status: string;
 }
 
 // ============================================================================
@@ -115,12 +121,93 @@ function extractOrderData(order: OrderFragment): OrderSummaryData {
 
 export const OrderSummary: FC<OrderSummaryProps> = ({ checkout, order, editable }) => {
 	const [promoCode, setPromoCode] = useState("");
-	const [promoApplied, setPromoApplied] = useState(false);
+	const [promoError, setPromoError] = useState("");
+	const [isApplying, setIsApplying] = useState(false);
 	// Collapsed by default on mobile
 	const [isExpanded, setIsExpanded] = useState(false);
+	const autoApplyAttemptedRef = useRef(false);
 
 	// Extract data from either checkout or order
 	const data = checkout ? extractCheckoutData(checkout) : order ? extractOrderData(order) : null;
+	const checkoutId = checkout?.id;
+	const alreadyHasVoucher = !!checkout?.voucherCode;
+	const promoApplied = alreadyHasVoucher;
+
+	useEffect(() => {
+		// Skip if no checkoutId, already attempted, or checkout already has a voucher applied
+		if (!checkoutId || autoApplyAttemptedRef.current || alreadyHasVoucher) {
+			return;
+		}
+
+		autoApplyAttemptedRef.current = true;
+		let cancelled = false;
+
+		const applyScopedCoupon = async () => {
+			try {
+				const redemptionToken = resolveTachiyaRedemptionToken(
+					new URLSearchParams(window.location.search),
+					window.localStorage,
+				);
+				if (!redemptionToken) return;
+
+				const couponsRes = await fetch(
+					buildTachiyaCouponsUrl(
+						process.env.NEXT_PUBLIC_TACHIYA_API_URL ?? "http://localhost:8001",
+						redemptionToken,
+					),
+				);
+				if (!couponsRes.ok) return;
+
+				const coupons = (await couponsRes.json()) as CouponResponseItem[];
+				const activeCoupon = coupons.find((coupon) => coupon.status === "active");
+				if (!activeCoupon || cancelled) return;
+
+				// Use raw fetch to avoid the unused $languageCode variable issue
+				// in the generated mutation (Saleor rejects it with a validation error)
+				const saleorUrl = process.env.NEXT_PUBLIC_SALEOR_API_URL ?? "http://localhost:8000/graphql/";
+				const gqlRes = await fetch(saleorUrl, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						query: `
+							mutation CheckoutAddPromoCode($checkoutId: ID, $promoCode: String!) {
+								checkoutAddPromoCode(checkoutId: $checkoutId, promoCode: $promoCode) {
+									errors { field message code }
+									checkout { id voucherCode discount { amount } }
+								}
+							}
+						`,
+						variables: { checkoutId, promoCode: activeCoupon.voucher_code },
+					}),
+				});
+
+				if (cancelled || !gqlRes.ok) return;
+
+				const gqlData = (await gqlRes.json()) as {
+					data?: {
+						checkoutAddPromoCode?: {
+							errors: Array<{ message: string }>;
+							checkout?: { voucherCode?: string };
+						};
+					};
+				};
+				const result = gqlData.data?.checkoutAddPromoCode;
+				if (result && (!result.errors || result.errors.length === 0)) {
+					// Reload to let urql re-fetch checkout with the discount applied
+					window.location.reload();
+				}
+			} catch (err) {
+				// Swallow auto-apply failures and keep checkout usable.
+				console.error("[auto-apply coupon] failed:", err);
+			}
+		};
+
+		void applyScopedCoupon();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [checkoutId, alreadyHasVoucher]);
 
 	if (!data) {
 		return null;
@@ -137,10 +224,48 @@ export const OrderSummary: FC<OrderSummaryProps> = ({ checkout, order, editable 
 		}).format(amount);
 	};
 
-	const handleApplyPromo = () => {
-		// TODO: Call Saleor mutation to apply promo code
-		if (promoCode.toLowerCase() === "saleor10") {
-			setPromoApplied(true);
+	const handleApplyPromo = async () => {
+		if (!checkoutId || !promoCode) {
+			return;
+		}
+
+		setIsApplying(true);
+		setPromoError("");
+
+		try {
+			const saleorUrl = process.env.NEXT_PUBLIC_SALEOR_API_URL ?? "http://localhost:8000/graphql/";
+			const res = await fetch(saleorUrl, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					query: `
+						mutation CheckoutAddPromoCode($checkoutId: ID, $promoCode: String!) {
+							checkoutAddPromoCode(checkoutId: $checkoutId, promoCode: $promoCode) {
+								errors { field message code }
+								checkout { id voucherCode discount { amount } }
+							}
+						}
+					`,
+					variables: { checkoutId, promoCode },
+				}),
+			});
+
+			if (!res.ok) {
+				setPromoError("Network error. Please try again.");
+				return;
+			}
+			const json = (await res.json()) as {
+				data?: { checkoutAddPromoCode?: { errors: Array<{ message: string }> } };
+			};
+			const errors = json.data?.checkoutAddPromoCode?.errors;
+			if (errors && errors.length > 0) {
+				setPromoError(errors[0]?.message ?? "Invalid promo code.");
+			} else {
+				// Reload to let urql re-fetch checkout with the discount applied
+				window.location.reload();
+			}
+		} finally {
+			setIsApplying(false);
 		}
 	};
 
@@ -298,15 +423,16 @@ export const OrderSummary: FC<OrderSummaryProps> = ({ checkout, order, editable 
 								<Button
 									type="submit"
 									variant="outline-solid"
-									disabled={!promoCode || promoApplied}
+									disabled={!promoCode || promoApplied || isApplying}
 									className="h-10 bg-white px-4 text-sm"
 								>
-									{promoApplied ? "Applied" : "Apply"}
+									{isApplying ? "Applying..." : promoApplied ? "Applied" : "Apply"}
 								</Button>
 							</form>
-							{promoApplied && (
-								<p className="mt-2 text-sm font-medium text-green-600">SALEOR10 - 10% discount applied</p>
+							{promoApplied && checkout?.voucherCode && (
+								<p className="mt-2 text-sm font-medium text-green-600">{checkout.voucherCode} applied</p>
 							)}
+							{promoError && <p className="mt-2 text-sm font-medium text-red-600">{promoError}</p>}
 						</section>
 					)}
 
