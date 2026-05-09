@@ -4,6 +4,7 @@ import { LoginForm } from "@/ui/components/login-form";
 import { AccountNav } from "@/ui/components/account/account-nav";
 import { AccountSkeleton } from "@/ui/components/account/account-skeleton";
 import { AccountProvider } from "@/ui/components/account/account-context";
+import { PointsBalance, PointsBalanceSkeleton } from "@/ui/components/account/points-balance";
 import { getCurrentUser } from "./get-current-user";
 
 export const metadata = {
@@ -43,6 +44,9 @@ async function AccountShell({ children }: { children: ReactNode }) {
 				<div className="flex flex-col gap-8 md:flex-row">
 					<aside className="shrink-0 md:min-h-[60vh] md:w-52">
 						<AccountNav />
+						<Suspense fallback={<PointsBalanceSkeleton />}>
+							<PointsBalance userId={user.id} />
+						</Suspense>
 					</aside>
 					<div className="min-w-0 flex-1">{children}</div>
 				</div>
