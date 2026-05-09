@@ -8,15 +8,51 @@ const messages = {
 	unavailableLabel: "Points unavailable",
 	unavailableDescription: "Try again later",
 	notConfiguredDescription: "Points are not configured",
+	recentActivityLabel: "Recent activity",
+	ledgerEmptyDescription: "No recent activity",
+	ledgerUnavailableDescription: "Recent activity is unavailable",
+	creditLabel: "Earned",
+	debitLabel: "Used",
 };
 
 describe("buildPointsBalanceView", () => {
 	it("formats a positive balance", () => {
-		expect(buildPointsBalanceView({ ok: true, userId: "user-1", balance: 1234 }, messages)).toEqual({
+		expect(
+			buildPointsBalanceView({ ok: true, userId: "user-1", balance: 1234 }, messages, {
+				ok: true,
+				userId: "user-1",
+				entries: [
+					{
+						id: "entry-1",
+						amount: 120,
+						entryType: "credit",
+						sourceType: "tachigo",
+						referenceId: "tachigo:redemption-1",
+						expiresAt: null,
+						createdAt: "2026-01-02T00:00:00",
+					},
+				],
+			}),
+		).toEqual({
 			status: "ready",
 			label: "Points",
 			value: "1,234",
 			description: null,
+			ledger: {
+				status: "ready",
+				label: "Recent activity",
+				description: null,
+				entries: [
+					{
+						id: "entry-1",
+						amount: "+120",
+						kindLabel: "Earned",
+						sourceType: "tachigo",
+						referenceId: "tachigo:redemption-1",
+						createdAt: "2026-01-02T00:00:00",
+					},
+				],
+			},
 		});
 	});
 
@@ -26,6 +62,12 @@ describe("buildPointsBalanceView", () => {
 			label: "Points",
 			value: "0",
 			description: "No points yet",
+			ledger: {
+				status: "empty",
+				label: "Recent activity",
+				description: "No recent activity",
+				entries: [],
+			},
 		});
 	});
 
@@ -35,6 +77,7 @@ describe("buildPointsBalanceView", () => {
 			label: "Points unavailable",
 			value: null,
 			description: "Points are not configured",
+			ledger: null,
 		});
 	});
 
@@ -44,6 +87,7 @@ describe("buildPointsBalanceView", () => {
 			label: "Points unavailable",
 			value: null,
 			description: "Points are not configured",
+			ledger: null,
 		});
 	});
 
@@ -53,6 +97,27 @@ describe("buildPointsBalanceView", () => {
 			label: "Points unavailable",
 			value: null,
 			description: "Try again later",
+			ledger: null,
+		});
+	});
+
+	it("keeps the balance card usable when ledger request fails", () => {
+		expect(
+			buildPointsBalanceView({ ok: true, userId: "user-1", balance: 123 }, messages, {
+				ok: false,
+				reason: "request-failed",
+			}),
+		).toEqual({
+			status: "ready",
+			label: "Points",
+			value: "123",
+			description: null,
+			ledger: {
+				status: "unavailable",
+				label: "Recent activity",
+				description: "Recent activity is unavailable",
+				entries: [],
+			},
 		});
 	});
 });
