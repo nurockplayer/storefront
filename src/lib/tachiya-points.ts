@@ -36,13 +36,15 @@ interface TachiyaInternalConfig {
 
 export function buildTachiyaPointsBalanceUrl(baseUrl: string, userId: string): string {
 	const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, "");
-	return `${normalizedBaseUrl}/points/balance?user_id=${encodeURIComponent(userId)}`;
+	const normalizedUserId = userId.trim();
+	return `${normalizedBaseUrl}/points/balance?user_id=${encodeURIComponent(normalizedUserId)}`;
 }
 
 export function buildTachiyaPointsLedgerUrl(baseUrl: string, userId: string, limit = 3): string {
 	const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, "");
+	const normalizedUserId = userId.trim();
 	return `${normalizedBaseUrl}/points/ledger?user_id=${encodeURIComponent(
-		userId,
+		normalizedUserId,
 	)}&limit=${normalizeLedgerLimit(limit)}`;
 }
 
@@ -52,7 +54,8 @@ export async function fetchTachiyaPointsBalance({
 	internalSecret,
 	fetchImpl = fetch,
 }: FetchTachiyaPointsBalanceOptions): Promise<TachiyaPointsBalanceResult> {
-	if (!userId) {
+	const normalizedUserId = userId.trim();
+	if (!normalizedUserId) {
 		return { ok: false, reason: "missing-user" };
 	}
 
@@ -62,7 +65,7 @@ export async function fetchTachiyaPointsBalance({
 	}
 
 	try {
-		const response = await fetchImpl(buildTachiyaPointsBalanceUrl(config.baseUrl, userId), {
+		const response = await fetchImpl(buildTachiyaPointsBalanceUrl(config.baseUrl, normalizedUserId), {
 			cache: "no-store",
 			headers: { "X-Tachiya-Internal-Secret": config.internalSecret },
 		});
@@ -77,7 +80,7 @@ export async function fetchTachiyaPointsBalance({
 
 		return {
 			ok: true,
-			userId: body.user_id ?? userId,
+			userId: body.user_id ?? normalizedUserId,
 			balance: body.balance,
 		};
 	} catch {
@@ -92,7 +95,8 @@ export async function fetchTachiyaPointsLedger({
 	limit = 3,
 	fetchImpl = fetch,
 }: FetchTachiyaPointsLedgerOptions): Promise<TachiyaPointsLedgerResult> {
-	if (!userId) {
+	const normalizedUserId = userId.trim();
+	if (!normalizedUserId) {
 		return { ok: false, reason: "missing-user" };
 	}
 
@@ -102,7 +106,7 @@ export async function fetchTachiyaPointsLedger({
 	}
 
 	try {
-		const response = await fetchImpl(buildTachiyaPointsLedgerUrl(config.baseUrl, userId, limit), {
+		const response = await fetchImpl(buildTachiyaPointsLedgerUrl(config.baseUrl, normalizedUserId, limit), {
 			cache: "no-store",
 			headers: { "X-Tachiya-Internal-Secret": config.internalSecret },
 		});
@@ -126,7 +130,7 @@ export async function fetchTachiyaPointsLedger({
 
 		return {
 			ok: true,
-			userId: body.user_id ?? userId,
+			userId: body.user_id ?? normalizedUserId,
 			entries,
 		};
 	} catch {

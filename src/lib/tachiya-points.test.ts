@@ -62,7 +62,7 @@ describe("fetchTachiyaPointsBalance", () => {
 		const fetchImpl = vi.fn(async () => Response.json({ user_id: "user-1", balance: 120 }));
 
 		const result = await fetchTachiyaPointsBalance({
-			userId: "user-1",
+			userId: " user-1 ",
 			baseUrl: " http://localhost:8001/ ",
 			internalSecret: " shared-secret ",
 			fetchImpl,
@@ -108,6 +108,20 @@ describe("fetchTachiyaPointsBalance", () => {
 
 		const result = await fetchTachiyaPointsBalance({
 			userId: "",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "missing-user" });
+		expect(fetchImpl).not.toHaveBeenCalled();
+	});
+
+	it("returns a skipped result when user id is blank", async () => {
+		const fetchImpl = vi.fn();
+
+		const result = await fetchTachiyaPointsBalance({
+			userId: "   ",
 			baseUrl: "http://localhost:8001",
 			internalSecret: "shared-secret",
 			fetchImpl,
@@ -203,6 +217,38 @@ describe("fetchTachiyaPointsLedger", () => {
 		});
 
 		expect(result).toEqual({ ok: false, reason: "missing-config" });
+		expect(fetchImpl).not.toHaveBeenCalled();
+	});
+
+	it("trims user id before fetching ledger entries", async () => {
+		const fetchImpl = vi.fn(async () => Response.json({ user_id: "user-1", entries: [] }));
+
+		const result = await fetchTachiyaPointsLedger({
+			userId: " user-1 ",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			limit: 3,
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: true, userId: "user-1", entries: [] });
+		expect(fetchImpl).toHaveBeenCalledWith("http://localhost:8001/points/ledger?user_id=user-1&limit=3", {
+			cache: "no-store",
+			headers: { "X-Tachiya-Internal-Secret": "shared-secret" },
+		});
+	});
+
+	it("returns a skipped result when ledger user id is blank", async () => {
+		const fetchImpl = vi.fn();
+
+		const result = await fetchTachiyaPointsLedger({
+			userId: "   ",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "missing-user" });
 		expect(fetchImpl).not.toHaveBeenCalled();
 	});
 });
