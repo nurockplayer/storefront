@@ -225,6 +225,28 @@ describe("fetchTachiyaStreamerCatalog", () => {
 
 		expect(blankProductId).toEqual({ ok: false, reason: "request-failed" });
 	});
+
+	it("returns request-failed when the catalog payload has a blank collection id", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				streamer: {
+					slug: "streamer-one",
+					display_name: "Streamer One",
+					saleor_collection_id: "   ",
+				},
+				saleor_product_ids: ["product-1"],
+			}),
+		);
+
+		const result = await fetchTachiyaStreamerCatalog({
+			slug: "streamer-one",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
 });
 
 describe("fetchTachiyaStreamerList", () => {
@@ -310,6 +332,22 @@ describe("fetchTachiyaStreamerList", () => {
 		const fetchImpl = vi.fn(async () =>
 			Response.json({
 				streamers: [{ slug: "streamer-one", display_name: "   ", saleor_collection_id: null }],
+			}),
+		);
+
+		const result = await fetchTachiyaStreamerList({
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
+
+	it("returns request-failed when the list payload has a blank collection id", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				streamers: [{ slug: "streamer-one", display_name: "Streamer One", saleor_collection_id: "   " }],
 			}),
 		);
 
