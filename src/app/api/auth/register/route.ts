@@ -17,15 +17,6 @@ const REGISTER_MUTATION = `
   }
 `;
 
-interface RegisterRequest {
-	email: string;
-	password: string;
-	firstName?: string;
-	lastName?: string;
-	channel: string;
-	redirectUrl: string;
-}
-
 interface AccountRegisterResult {
 	accountRegister?: {
 		user?: { id: string; email: string };
@@ -33,13 +24,37 @@ interface AccountRegisterResult {
 	};
 }
 
-export async function POST(request: NextRequest) {
-	const body = (await request.json()) as RegisterRequest;
-	const { email, password, firstName, lastName, channel, redirectUrl } = body;
+function getObject(value: unknown): Record<string, unknown> | undefined {
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		return undefined;
+	}
+	return value as Record<string, unknown>;
+}
 
-	if (!email || !password) {
+function getNonBlankString(value: unknown): string | undefined {
+	if (typeof value !== "string") {
+		return undefined;
+	}
+	const trimmedValue = value.trim();
+	return trimmedValue ? trimmedValue : undefined;
+}
+
+function getOptionalString(value: unknown): string {
+	return typeof value === "string" ? value.trim() : "";
+}
+
+export async function POST(request: NextRequest) {
+	const body = getObject(await request.json().catch(() => null));
+	const email = getNonBlankString(body?.email);
+	const password = getNonBlankString(body?.password);
+	const channel = getNonBlankString(body?.channel);
+	const redirectUrl = getNonBlankString(body?.redirectUrl);
+	const firstName = getOptionalString(body?.firstName);
+	const lastName = getOptionalString(body?.lastName);
+
+	if (!email || !password || !channel || !redirectUrl) {
 		return NextResponse.json(
-			{ errors: [{ message: "Email and password are required", code: "REQUIRED" }] },
+			{ errors: [{ message: "Email, password, channel, and redirectUrl are required", code: "REQUIRED" }] },
 			{ status: 400 },
 		);
 	}
@@ -50,8 +65,8 @@ export async function POST(request: NextRequest) {
 			input: {
 				email,
 				password,
-				firstName: firstName || "",
-				lastName: lastName || "",
+				firstName,
+				lastName,
 				channel,
 				redirectUrl,
 			},
