@@ -36,6 +36,7 @@ export async function PointsBalance({ userId }: PointsBalanceProps) {
 			ledgerUnavailableDescription: t("ledgerUnavailableDescription"),
 			creditLabel: t("creditLabel"),
 			debitLabel: t("debitLabel"),
+			expiresLabel: t("expiresLabel"),
 			sourceLabels: {
 				tachigo: t("sourceLabels.tachigo"),
 				orderReward: t("sourceLabels.orderReward"),
@@ -98,6 +99,11 @@ function PointsLedger({ ledger }: { ledger: PointsLedgerView }) {
 									<div className="truncate text-muted-foreground" title={entry.referenceId}>
 										{entry.referenceId}
 									</div>
+									{entry.expiresLabel ? (
+										<div className="text-muted-foreground" title={entry.expiresAt ?? undefined}>
+											{entry.expiresLabel}
+										</div>
+									) : null}
 								</div>
 								<div className="text-right">
 									<div className="font-medium tabular-nums">{entry.amount}</div>
