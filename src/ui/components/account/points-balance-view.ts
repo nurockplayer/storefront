@@ -12,6 +12,13 @@ export interface PointsBalanceMessages {
 	ledgerUnavailableDescription: string;
 	creditLabel: string;
 	debitLabel: string;
+	sourceLabels: {
+		tachigo: string;
+		orderReward: string;
+		checkout: string;
+		manual: string;
+		referral: string;
+	};
 }
 
 export type PointsBalanceView =
@@ -41,7 +48,7 @@ export interface PointsLedgerEntryView {
 	id: string;
 	amount: string;
 	kindLabel: string;
-	sourceType: string;
+	sourceLabel: string;
 	referenceId: string;
 	createdAt: string;
 }
@@ -116,9 +123,27 @@ function buildLedgerView(
 			id: entry.id,
 			amount: `${entry.amount > 0 ? "+" : ""}${entry.amount.toLocaleString()}`,
 			kindLabel: entry.amount >= 0 ? messages.creditLabel : messages.debitLabel,
-			sourceType: entry.sourceType,
+			sourceLabel: getSourceLabel(entry.sourceType, messages),
 			referenceId: entry.referenceId,
 			createdAt: entry.createdAt,
 		})),
 	};
+}
+
+function getSourceLabel(sourceType: string, messages: PointsBalanceMessages): string {
+	const normalizedSourceType = sourceType.trim().toLowerCase();
+	switch (normalizedSourceType) {
+		case "tachigo":
+			return messages.sourceLabels.tachigo;
+		case "order-reward":
+			return messages.sourceLabels.orderReward;
+		case "checkout":
+			return messages.sourceLabels.checkout;
+		case "manual":
+			return messages.sourceLabels.manual;
+		case "referral":
+			return messages.sourceLabels.referral;
+		default:
+			return sourceType;
+	}
 }

@@ -15,5 +15,10 @@ describe("account points balance messages", () => {
 		expect(messages).toHaveProperty("account.pointsBalance.ledgerUnavailableDescription");
 		expect(messages).toHaveProperty("account.pointsBalance.creditLabel");
 		expect(messages).toHaveProperty("account.pointsBalance.debitLabel");
+		expect(messages).toHaveProperty("account.pointsBalance.sourceLabels.tachigo");
+		expect(messages).toHaveProperty("account.pointsBalance.sourceLabels.orderReward");
+		expect(messages).toHaveProperty("account.pointsBalance.sourceLabels.checkout");
+		expect(messages).toHaveProperty("account.pointsBalance.sourceLabels.manual");
+		expect(messages).toHaveProperty("account.pointsBalance.sourceLabels.referral");
 	});
 });

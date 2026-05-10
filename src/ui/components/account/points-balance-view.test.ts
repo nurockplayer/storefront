@@ -13,6 +13,13 @@ const messages = {
 	ledgerUnavailableDescription: "Recent activity is unavailable",
 	creditLabel: "Earned",
 	debitLabel: "Used",
+	sourceLabels: {
+		tachigo: "Tachigo redemption",
+		orderReward: "Order reward",
+		checkout: "Checkout",
+		manual: "Manual adjustment",
+		referral: "Referral reward",
+	},
 };
 
 describe("buildPointsBalanceView", () => {
@@ -47,13 +54,36 @@ describe("buildPointsBalanceView", () => {
 						id: "entry-1",
 						amount: "+120",
 						kindLabel: "Earned",
-						sourceType: "tachigo",
+						sourceLabel: "Tachigo redemption",
 						referenceId: "tachigo:redemption-1",
 						createdAt: "2026-01-02T00:00:00",
 					},
 				],
 			},
 		});
+	});
+
+	it("falls back to the raw source type for unknown ledger sources", () => {
+		const view = buildPointsBalanceView({ ok: true, userId: "user-1", balance: 1234 }, messages, {
+			ok: true,
+			userId: "user-1",
+			entries: [
+				{
+					id: "entry-1",
+					amount: 120,
+					entryType: "credit",
+					sourceType: "campaign-drop",
+					referenceId: "campaign:drop-1",
+					expiresAt: null,
+					createdAt: "2026-01-02T00:00:00",
+				},
+			],
+		});
+
+		if (view.status !== "ready") {
+			throw new Error("expected ready points view");
+		}
+		expect(view.ledger.entries[0]?.sourceLabel).toBe("campaign-drop");
 	});
 
 	it("returns an empty state for zero balance", () => {
