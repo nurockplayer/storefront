@@ -169,6 +169,25 @@ describe("fetchTachiyaPointsBalance", () => {
 
 		expect(result).toEqual({ ok: false, reason: "request-failed" });
 	});
+
+	it.each([Number.NaN, Number.POSITIVE_INFINITY])(
+		"returns a failed result when the balance is not finite",
+		async (balance) => {
+			const fetchImpl = vi.fn(async () => ({
+				ok: true,
+				json: async () => ({ user_id: "user-1", balance }),
+			}));
+
+			const result = await fetchTachiyaPointsBalance({
+				userId: "user-1",
+				baseUrl: "http://localhost:8001",
+				internalSecret: "shared-secret",
+				fetchImpl,
+			});
+
+			expect(result).toEqual({ ok: false, reason: "request-failed" });
+		},
+	);
 });
 
 describe("fetchTachiyaPointsLedger", () => {
@@ -313,6 +332,38 @@ describe("fetchTachiyaPointsLedger", () => {
 
 		expect(result).toEqual({ ok: false, reason: "request-failed" });
 	});
+
+	it.each([Number.NaN, Number.POSITIVE_INFINITY])(
+		"returns a failed result when ledger amount is not finite",
+		async (amount) => {
+			const fetchImpl = vi.fn(async () => ({
+				ok: true,
+				json: async () => ({
+					user_id: "user-1",
+					entries: [
+						{
+							id: "entry-1",
+							amount,
+							entry_type: "credit",
+							source_type: "tachigo",
+							reference_id: "tachigo:redemption-1",
+							expires_at: null,
+							created_at: "2026-01-02T00:00:00",
+						},
+					],
+				}),
+			}));
+
+			const result = await fetchTachiyaPointsLedger({
+				userId: "user-1",
+				baseUrl: "http://localhost:8001",
+				internalSecret: "shared-secret",
+				fetchImpl,
+			});
+
+			expect(result).toEqual({ ok: false, reason: "request-failed" });
+		},
+	);
 
 	it("returns a skipped result when ledger config is blank", async () => {
 		const fetchImpl = vi.fn();

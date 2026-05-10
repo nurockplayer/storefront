@@ -74,7 +74,7 @@ export async function fetchTachiyaPointsBalance({
 		}
 
 		const body = (await response.json()) as { user_id?: string; balance?: unknown };
-		if (typeof body.balance !== "number") {
+		if (!isFiniteNumber(body.balance)) {
 			return { ok: false, reason: "request-failed" };
 		}
 		const responseUserId = resolveResponseUserId(body.user_id, normalizedUserId);
@@ -175,7 +175,7 @@ function mapLedgerEntry(entry: unknown): TachiyaPointsLedgerEntry | null {
 	const createdAt = normalizeNonBlankString(payload.created_at);
 	if (
 		id === null ||
-		typeof payload.amount !== "number" ||
+		!isFiniteNumber(payload.amount) ||
 		entryType === null ||
 		sourceType === null ||
 		referenceId === null ||
@@ -199,6 +199,10 @@ function mapLedgerEntry(entry: unknown): TachiyaPointsLedgerEntry | null {
 		expiresAt,
 		createdAt,
 	};
+}
+
+function isFiniteNumber(value: unknown): value is number {
+	return typeof value === "number" && Number.isFinite(value);
 }
 
 function resolveResponseUserId(value: unknown, fallback: string): string | null {
