@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
 	buildTachiyaCouponsUrl,
 	resolveTachiyaRedemptionToken,
+	selectActiveTachiyaCoupon,
 	TACHIYA_REDEMPTION_TOKEN_STORAGE_KEY,
 } from "./tachiya-coupons";
 
@@ -81,5 +82,27 @@ describe("buildTachiyaCouponsUrl", () => {
 
 	it("returns null when the redemption token is blank", () => {
 		expect(buildTachiyaCouponsUrl("http://localhost:8001/", "   ")).toBeNull();
+	});
+});
+
+describe("selectActiveTachiyaCoupon", () => {
+	it("selects and normalizes the first active coupon with a voucher code", () => {
+		expect(
+			selectActiveTachiyaCoupon([
+				{ voucher_code: "   ", status: "active" },
+				{ voucher_code: " TACHIYA-ABC123 ", status: " active " },
+			]),
+		).toEqual({ voucher_code: "TACHIYA-ABC123", status: "active" });
+	});
+
+	it.each([
+		null,
+		{},
+		[{ voucher_code: "TACHIYA-ABC123", status: "redeemed" }],
+		[{ voucher_code: "   ", status: "active" }],
+		[{ voucher_code: 123, status: "active" }],
+		[{ voucher_code: "TACHIYA-ABC123", status: 1 }],
+	])("returns null for malformed payload %#", (payload) => {
+		expect(selectActiveTachiyaCoupon(payload)).toBeNull();
 	});
 });
