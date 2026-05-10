@@ -58,6 +58,23 @@ describe("fetchTachiyaPointsBalance", () => {
 		});
 	});
 
+	it("trims configured balance URL and internal secret before fetching", async () => {
+		const fetchImpl = vi.fn(async () => Response.json({ user_id: "user-1", balance: 120 }));
+
+		const result = await fetchTachiyaPointsBalance({
+			userId: "user-1",
+			baseUrl: " http://localhost:8001/ ",
+			internalSecret: " shared-secret ",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: true, userId: "user-1", balance: 120 });
+		expect(fetchImpl).toHaveBeenCalledWith("http://localhost:8001/points/balance?user_id=user-1", {
+			cache: "no-store",
+			headers: { "X-Tachiya-Internal-Secret": "shared-secret" },
+		});
+	});
+
 	it("returns a skipped result when config is missing", async () => {
 		const fetchImpl = vi.fn();
 

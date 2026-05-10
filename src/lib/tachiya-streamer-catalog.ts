@@ -33,13 +33,18 @@ interface FetchTachiyaStreamerListOptions {
 	fetchImpl?: FetchImpl;
 }
 
+interface TachiyaInternalConfig {
+	baseUrl: string;
+	internalSecret: string;
+}
+
 export function buildTachiyaStreamerCatalogUrl(baseUrl: string, slug: string): string {
-	const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+	const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, "");
 	return `${normalizedBaseUrl}/streamers/${encodeURIComponent(slug)}/catalog`;
 }
 
 export function buildTachiyaStreamerListUrl(baseUrl: string, limit = 100): string {
-	const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+	const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, "");
 	return `${normalizedBaseUrl}/streamers?limit=${normalizeLimit(limit)}`;
 }
 
@@ -54,14 +59,15 @@ export async function fetchTachiyaStreamerCatalog({
 		return { ok: false, reason: "missing-slug" };
 	}
 
-	if (!hasTachiyaConfig(baseUrl, internalSecret)) {
+	const config = normalizeTachiyaConfig(baseUrl, internalSecret);
+	if (config === null) {
 		return { ok: false, reason: "missing-config" };
 	}
 
 	try {
-		const response = await fetchImpl(buildTachiyaStreamerCatalogUrl(baseUrl, normalizedSlug), {
+		const response = await fetchImpl(buildTachiyaStreamerCatalogUrl(config.baseUrl, normalizedSlug), {
 			cache: "no-store",
-			headers: { "X-Tachiya-Internal-Secret": internalSecret },
+			headers: { "X-Tachiya-Internal-Secret": config.internalSecret },
 		});
 		if (response.status === 404) {
 			return { ok: false, reason: "not-found" };
@@ -87,14 +93,15 @@ export async function fetchTachiyaStreamerList({
 	limit = 100,
 	fetchImpl = fetch,
 }: FetchTachiyaStreamerListOptions): Promise<TachiyaStreamerListResult> {
-	if (!hasTachiyaConfig(baseUrl, internalSecret)) {
+	const config = normalizeTachiyaConfig(baseUrl, internalSecret);
+	if (config === null) {
 		return { ok: false, reason: "missing-config" };
 	}
 
 	try {
-		const response = await fetchImpl(buildTachiyaStreamerListUrl(baseUrl, limit), {
+		const response = await fetchImpl(buildTachiyaStreamerListUrl(config.baseUrl, limit), {
 			cache: "no-store",
-			headers: { "X-Tachiya-Internal-Secret": internalSecret },
+			headers: { "X-Tachiya-Internal-Secret": config.internalSecret },
 		});
 		if (!response.ok) {
 			return { ok: false, reason: "request-failed" };
@@ -203,6 +210,19 @@ function normalizeLimit(limit: number): number {
 	return Math.min(100, Math.max(1, Math.trunc(limit)));
 }
 
-function hasTachiyaConfig(baseUrl: string | undefined, internalSecret: string | undefined): boolean {
-	return Boolean(baseUrl?.trim() && internalSecret?.trim());
+function normalizeTachiyaConfig(
+	baseUrl: string | undefined,
+	internalSecret: string | undefined,
+): TachiyaInternalConfig | null {
+	const normalizedBaseUrl = baseUrl?.trim();
+	const normalizedInternalSecret = internalSecret?.trim();
+
+	if (!normalizedBaseUrl || !normalizedInternalSecret) {
+		return null;
+	}
+
+	return {
+		baseUrl: normalizedBaseUrl,
+		internalSecret: normalizedInternalSecret,
+	};
 }

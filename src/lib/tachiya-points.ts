@@ -29,13 +29,18 @@ interface FetchTachiyaPointsLedgerOptions extends FetchTachiyaPointsBalanceOptio
 	limit?: number;
 }
 
+interface TachiyaInternalConfig {
+	baseUrl: string;
+	internalSecret: string;
+}
+
 export function buildTachiyaPointsBalanceUrl(baseUrl: string, userId: string): string {
-	const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+	const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, "");
 	return `${normalizedBaseUrl}/points/balance?user_id=${encodeURIComponent(userId)}`;
 }
 
 export function buildTachiyaPointsLedgerUrl(baseUrl: string, userId: string, limit = 3): string {
-	const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+	const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, "");
 	return `${normalizedBaseUrl}/points/ledger?user_id=${encodeURIComponent(
 		userId,
 	)}&limit=${normalizeLedgerLimit(limit)}`;
@@ -51,14 +56,15 @@ export async function fetchTachiyaPointsBalance({
 		return { ok: false, reason: "missing-user" };
 	}
 
-	if (!hasTachiyaConfig(baseUrl, internalSecret)) {
+	const config = normalizeTachiyaConfig(baseUrl, internalSecret);
+	if (config === null) {
 		return { ok: false, reason: "missing-config" };
 	}
 
 	try {
-		const response = await fetchImpl(buildTachiyaPointsBalanceUrl(baseUrl, userId), {
+		const response = await fetchImpl(buildTachiyaPointsBalanceUrl(config.baseUrl, userId), {
 			cache: "no-store",
-			headers: { "X-Tachiya-Internal-Secret": internalSecret },
+			headers: { "X-Tachiya-Internal-Secret": config.internalSecret },
 		});
 		if (!response.ok) {
 			return { ok: false, reason: "request-failed" };
@@ -90,14 +96,15 @@ export async function fetchTachiyaPointsLedger({
 		return { ok: false, reason: "missing-user" };
 	}
 
-	if (!hasTachiyaConfig(baseUrl, internalSecret)) {
+	const config = normalizeTachiyaConfig(baseUrl, internalSecret);
+	if (config === null) {
 		return { ok: false, reason: "missing-config" };
 	}
 
 	try {
-		const response = await fetchImpl(buildTachiyaPointsLedgerUrl(baseUrl, userId, limit), {
+		const response = await fetchImpl(buildTachiyaPointsLedgerUrl(config.baseUrl, userId, limit), {
 			cache: "no-store",
-			headers: { "X-Tachiya-Internal-Secret": internalSecret },
+			headers: { "X-Tachiya-Internal-Secret": config.internalSecret },
 		});
 		if (!response.ok) {
 			return { ok: false, reason: "request-failed" };
@@ -184,6 +191,19 @@ function normalizeLedgerLimit(limit: number): number {
 	return Math.min(100, Math.max(1, Math.trunc(limit)));
 }
 
-function hasTachiyaConfig(baseUrl: string | undefined, internalSecret: string | undefined): boolean {
-	return Boolean(baseUrl?.trim() && internalSecret?.trim());
+function normalizeTachiyaConfig(
+	baseUrl: string | undefined,
+	internalSecret: string | undefined,
+): TachiyaInternalConfig | null {
+	const normalizedBaseUrl = baseUrl?.trim();
+	const normalizedInternalSecret = internalSecret?.trim();
+
+	if (!normalizedBaseUrl || !normalizedInternalSecret) {
+		return null;
+	}
+
+	return {
+		baseUrl: normalizedBaseUrl,
+		internalSecret: normalizedInternalSecret,
+	};
 }
