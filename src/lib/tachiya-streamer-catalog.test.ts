@@ -65,6 +65,32 @@ describe("fetchTachiyaStreamerCatalog", () => {
 		});
 	});
 
+	it("trims configured catalog URL and internal secret before fetching", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				streamer: {
+					slug: "streamer-one",
+					display_name: "Streamer One",
+					saleor_collection_id: "collection-1",
+				},
+				saleor_product_ids: ["product-1"],
+			}),
+		);
+
+		const result = await fetchTachiyaStreamerCatalog({
+			slug: "streamer-one",
+			baseUrl: " http://localhost:8001/ ",
+			internalSecret: " shared-secret ",
+			fetchImpl,
+		});
+
+		expect(result.ok).toBe(true);
+		expect(fetchImpl).toHaveBeenCalledWith("http://localhost:8001/streamers/streamer-one/catalog", {
+			cache: "no-store",
+			headers: { "X-Tachiya-Internal-Secret": "shared-secret" },
+		});
+	});
+
 	it("returns missing-config when the API URL or secret is not configured", async () => {
 		const fetchImpl = vi.fn();
 
