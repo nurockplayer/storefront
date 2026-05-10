@@ -130,6 +130,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate GraphQL types
+        run: pnpm run generate:all
+
       - name: Build app
         env:
           SKIP_CODEGEN: "1"
