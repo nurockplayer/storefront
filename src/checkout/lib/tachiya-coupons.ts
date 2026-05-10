@@ -30,5 +30,5 @@ export function resolveTachiyaRedemptionToken(
 
 export function buildTachiyaCouponsUrl(baseUrl: string, redemptionToken: string): string {
 	const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
-	return `${normalizedBaseUrl}/coupons?redemption_token=${encodeURIComponent(redemptionToken)}`;
+	return `${normalizedBaseUrl}/coupons?redemption_token=${encodeURIComponent(redemptionToken.trim())}`;
 }

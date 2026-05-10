@@ -68,4 +68,10 @@ describe("buildTachiyaCouponsUrl", () => {
 			"http://localhost:8001/coupons?redemption_token=token%20with%20spaces",
 		);
 	});
+
+	it("trims the redemption token before encoding it", () => {
+		expect(buildTachiyaCouponsUrl("http://localhost:8001/", " token-1 ")).toBe(
+			"http://localhost:8001/coupons?redemption_token=token-1",
+		);
+	});
 });
