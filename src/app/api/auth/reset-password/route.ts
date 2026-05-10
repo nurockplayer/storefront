@@ -13,21 +13,32 @@ const REQUEST_PASSWORD_RESET_MUTATION = `
   }
 `;
 
-interface ResetPasswordRequest {
-	email: string;
-	channel: string;
-	redirectUrl: string;
-}
-
 interface RequestPasswordResetResult {
 	requestPasswordReset?: {
 		errors?: Array<{ field?: string | null; message: string; code?: string | null }>;
 	};
 }
 
+function getObject(value: unknown): Record<string, unknown> | undefined {
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		return undefined;
+	}
+	return value as Record<string, unknown>;
+}
+
+function getNonBlankString(value: unknown): string | undefined {
+	if (typeof value !== "string") {
+		return undefined;
+	}
+	const trimmedValue = value.trim();
+	return trimmedValue ? trimmedValue : undefined;
+}
+
 export async function POST(request: NextRequest) {
-	const body = (await request.json()) as ResetPasswordRequest;
-	const { email, channel, redirectUrl } = body;
+	const body = getObject(await request.json().catch(() => null));
+	const email = getNonBlankString(body?.email);
+	const channel = getNonBlankString(body?.channel);
+	const redirectUrl = getNonBlankString(body?.redirectUrl);
 
 	if (!email || !channel || !redirectUrl) {
 		return NextResponse.json(
