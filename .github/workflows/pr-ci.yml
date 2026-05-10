@@ -1,0 +1,139 @@
+name: ci/storefront
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - ".github/workflows/pr-ci.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "src/**"
+      - "messages/**"
+      - "skills/**"
+      - "public/**"
+  push:
+    branches:
+      - develop
+    paths:
+      - ".github/workflows/pr-ci.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "src/**"
+      - "messages/**"
+      - "skills/**"
+      - "public/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-storefront-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NEXT_PUBLIC_SALEOR_API_URL: https://storefront1.saleor.cloud/graphql/
+  NEXT_PUBLIC_STOREFRONT_URL: http://localhost:3000
+  NEXT_PUBLIC_DEFAULT_CHANNEL: default-channel
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  diff-check:
+    name: Diff whitespace check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout storefront
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whitespace errors
+        run: |
+          if [ -n "${GITHUB_BASE_REF}" ]; then
+            git fetch origin "${GITHUB_BASE_REF}" --depth=1
+            git diff --check "origin/${GITHUB_BASE_REF}"...HEAD
+          else
+            git diff-tree --check --no-commit-id --root -r HEAD
+          fi
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout storefront
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run lint
+        run: pnpm run lint
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout storefront
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm run test:run
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout storefront
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate GraphQL types
+        run: pnpm run generate:all
+
+      - name: Build app
+        env:
+          SKIP_CODEGEN: "1"
+        run: pnpm run build
