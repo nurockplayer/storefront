@@ -241,9 +241,9 @@ export async function GET(request: NextRequest) {
 	}
 
 	const searchParams = request.nextUrl.searchParams;
-	const path = searchParams.get("path");
-	const tag = searchParams.get("tag");
-	const all = searchParams.get("all");
+	const path = getNonBlankString(searchParams.get("path"));
+	const tag = getNonBlankString(searchParams.get("tag"));
+	const all = getNonBlankString(searchParams.get("all"));
 
 	if (!path && !tag && !all) {
 		return Response.json({ error: "Provide path, tag, and/or all parameter" }, { status: 400 });
@@ -284,7 +284,7 @@ export async function GET(request: NextRequest) {
 	}
 
 	if (tag) {
-		const profile = searchParams.get("profile") || "minutes";
+		const profile = getNonBlankString(searchParams.get("profile")) || "minutes";
 		console.log(
 			`[Revalidate] Tag: revalidateTag("${tag.replace(
 				/[\r\n]/g,
