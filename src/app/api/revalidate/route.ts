@@ -22,57 +22,74 @@ import { extractBearerToken, verifySecret, verifyWebhookSignature } from "@/lib/
 // Webhook payload parsing
 // ============================================================================
 
+function getObject(value: unknown): Record<string, unknown> | undefined {
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		return undefined;
+	}
+	return value as Record<string, unknown>;
+}
+
+function getNonBlankString(value: unknown): string | undefined {
+	if (typeof value !== "string") {
+		return undefined;
+	}
+	const trimmedValue = value.trim();
+	return trimmedValue ? trimmedValue : undefined;
+}
+
 function parseWebhookPayload(payload: unknown): {
 	type: "product" | "category" | "collection" | "unknown";
 	slug?: string;
 	channel?: string;
 	categorySlug?: string;
 } {
-	if (!payload || typeof payload !== "object") {
+	const data = getObject(payload);
+	if (!data) {
 		return { type: "unknown" };
 	}
 
-	const data = payload as Record<string, unknown>;
-
-	if (data.product && typeof data.product === "object") {
-		const product = data.product as Record<string, unknown>;
-		const category = product.category as Record<string, unknown> | undefined;
+	const product = getObject(data.product);
+	if (product) {
+		const category = getObject(product.category);
+		const channel = getObject(product.channel);
 		return {
 			type: "product",
-			slug: product.slug as string | undefined,
-			channel: (product.channel as Record<string, unknown>)?.slug as string | undefined,
-			categorySlug: category?.slug as string | undefined,
+			slug: getNonBlankString(product.slug),
+			channel: getNonBlankString(channel?.slug),
+			categorySlug: getNonBlankString(category?.slug),
 		};
 	}
 
-	if (data.productVariant && typeof data.productVariant === "object") {
-		const variant = data.productVariant as Record<string, unknown>;
-		const product = variant.product as Record<string, unknown> | undefined;
-		if (product) {
-			const category = product.category as Record<string, unknown> | undefined;
+	const variant = getObject(data.productVariant);
+	if (variant) {
+		const variantProduct = getObject(variant.product);
+		if (variantProduct) {
+			const category = getObject(variantProduct.category);
+			const channel = getObject(variantProduct.channel);
 			return {
 				type: "product",
-				slug: product.slug as string | undefined,
-				channel: (product.channel as Record<string, unknown>)?.slug as string | undefined,
-				categorySlug: category?.slug as string | undefined,
+				slug: getNonBlankString(variantProduct.slug),
+				channel: getNonBlankString(channel?.slug),
+				categorySlug: getNonBlankString(category?.slug),
 			};
 		}
 	}
 
-	if (data.category && typeof data.category === "object") {
-		const category = data.category as Record<string, unknown>;
+	const category = getObject(data.category);
+	if (category) {
 		return {
 			type: "category",
-			slug: category.slug as string | undefined,
+			slug: getNonBlankString(category.slug),
 		};
 	}
 
-	if (data.collection && typeof data.collection === "object") {
-		const collection = data.collection as Record<string, unknown>;
+	const collection = getObject(data.collection);
+	if (collection) {
+		const channel = getObject(collection.channel);
 		return {
 			type: "collection",
-			slug: collection.slug as string | undefined,
-			channel: (collection.channel as Record<string, unknown>)?.slug as string | undefined,
+			slug: getNonBlankString(collection.slug),
+			channel: getNonBlankString(channel?.slug),
 		};
 	}
 
