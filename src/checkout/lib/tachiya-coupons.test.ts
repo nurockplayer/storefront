@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
 	buildTachiyaCouponsUrl,
+	clearTachiyaRedemptionToken,
 	resolveTachiyaRedemptionToken,
 	selectActiveTachiyaCoupon,
 	TACHIYA_REDEMPTION_TOKEN_STORAGE_KEY,
@@ -10,6 +11,9 @@ function createStorage(initialValue: string | null = null) {
 	let value = initialValue;
 	return {
 		getItem: vi.fn(() => value),
+		removeItem: vi.fn(() => {
+			value = null;
+		}),
 		setItem: vi.fn((_key: string, nextValue: string) => {
 			value = nextValue;
 		}),
@@ -104,5 +108,26 @@ describe("selectActiveTachiyaCoupon", () => {
 		[{ voucher_code: "TACHIYA-ABC123", status: 1 }],
 	])("returns null for malformed payload %#", (payload) => {
 		expect(selectActiveTachiyaCoupon(payload)).toBeNull();
+	});
+});
+
+describe("clearTachiyaRedemptionToken", () => {
+	it("removes the stored redemption token", () => {
+		const storage = createStorage("stored-token");
+
+		clearTachiyaRedemptionToken(storage);
+
+		expect(storage.removeItem).toHaveBeenCalledWith(TACHIYA_REDEMPTION_TOKEN_STORAGE_KEY);
+		expect(resolveTachiyaRedemptionToken(new URLSearchParams(), storage)).toBeNull();
+	});
+
+	it("does not throw when storage removal fails", () => {
+		const storage = {
+			removeItem: vi.fn(() => {
+				throw new Error("storage unavailable");
+			}),
+		};
+
+		expect(() => clearTachiyaRedemptionToken(storage)).not.toThrow();
 	});
 });
