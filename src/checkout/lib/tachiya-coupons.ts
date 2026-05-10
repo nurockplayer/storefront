@@ -28,7 +28,13 @@ export function resolveTachiyaRedemptionToken(
 	}
 }
 
-export function buildTachiyaCouponsUrl(baseUrl: string, redemptionToken: string): string {
-	const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
-	return `${normalizedBaseUrl}/coupons?redemption_token=${encodeURIComponent(redemptionToken.trim())}`;
+export function buildTachiyaCouponsUrl(baseUrl: string, redemptionToken: string): string | null {
+	const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, "");
+	const normalizedRedemptionToken = redemptionToken.trim();
+
+	if (!normalizedBaseUrl || !normalizedRedemptionToken) {
+		return null;
+	}
+
+	return `${normalizedBaseUrl}/coupons?redemption_token=${encodeURIComponent(normalizedRedemptionToken)}`;
 }
