@@ -7,7 +7,11 @@ import { Button } from "@/ui/components/ui/button";
 import { Input } from "@/ui/components/ui/input";
 import { cn } from "@/lib/utils";
 import { type CheckoutFragment, type OrderFragment } from "@/checkout/graphql";
-import { buildTachiyaCouponsUrl, resolveTachiyaRedemptionToken } from "@/checkout/lib/tachiya-coupons";
+import {
+	buildTachiyaCouponsUrl,
+	resolveTachiyaRedemptionToken,
+	selectActiveTachiyaCoupon,
+} from "@/checkout/lib/tachiya-coupons";
 import { localeConfig } from "@/config/locale";
 
 // ============================================================================
@@ -39,11 +43,6 @@ interface OrderSummaryProps {
 	checkout?: CheckoutFragment;
 	order?: OrderFragment;
 	editable?: boolean;
-}
-
-interface CouponResponseItem {
-	voucher_code: string;
-	status: string;
 }
 
 // ============================================================================
@@ -159,8 +158,7 @@ export const OrderSummary: FC<OrderSummaryProps> = ({ checkout, order, editable 
 				const couponsRes = await fetch(couponsUrl);
 				if (!couponsRes.ok) return;
 
-				const coupons = (await couponsRes.json()) as CouponResponseItem[];
-				const activeCoupon = coupons.find((coupon) => coupon.status === "active");
+				const activeCoupon = selectActiveTachiyaCoupon(await couponsRes.json());
 				if (!activeCoupon || cancelled) return;
 
 				// Use raw fetch to avoid the unused $languageCode variable issue
