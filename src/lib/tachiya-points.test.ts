@@ -156,6 +156,19 @@ describe("fetchTachiyaPointsBalance", () => {
 
 		expect(result).toEqual({ ok: false, reason: "request-failed" });
 	});
+
+	it("returns a failed result when the balance user id payload is blank", async () => {
+		const fetchImpl = vi.fn(async () => Response.json({ user_id: "   ", balance: 120 }));
+
+		const result = await fetchTachiyaPointsBalance({
+			userId: "user-1",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
 });
 
 describe("fetchTachiyaPointsLedger", () => {
@@ -221,6 +234,75 @@ describe("fetchTachiyaPointsLedger", () => {
 
 	it("returns a failed result when the ledger user id payload is invalid", async () => {
 		const fetchImpl = vi.fn(async () => Response.json({ user_id: 123, entries: [] }));
+
+		const result = await fetchTachiyaPointsLedger({
+			userId: "user-1",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
+
+	it("returns a failed result when the ledger user id payload is blank", async () => {
+		const fetchImpl = vi.fn(async () => Response.json({ user_id: "   ", entries: [] }));
+
+		const result = await fetchTachiyaPointsLedger({
+			userId: "user-1",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
+
+	it("returns a failed result when ledger entry strings are blank", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				user_id: "user-1",
+				entries: [
+					{
+						id: "entry-1",
+						amount: 120,
+						entry_type: "   ",
+						source_type: "tachigo",
+						reference_id: "tachigo:redemption-1",
+						expires_at: "2026-12-31T23:59:59",
+						created_at: "2026-01-02T00:00:00",
+					},
+				],
+			}),
+		);
+
+		const result = await fetchTachiyaPointsLedger({
+			userId: "user-1",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
+
+	it("returns a failed result when ledger entry expiration is blank", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				user_id: "user-1",
+				entries: [
+					{
+						id: "entry-1",
+						amount: 120,
+						entry_type: "credit",
+						source_type: "tachigo",
+						reference_id: "tachigo:redemption-1",
+						expires_at: "   ",
+						created_at: "2026-01-02T00:00:00",
+					},
+				],
+			}),
+		);
 
 		const result = await fetchTachiyaPointsLedger({
 			userId: "user-1",

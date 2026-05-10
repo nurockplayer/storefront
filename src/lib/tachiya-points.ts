@@ -168,31 +168,36 @@ function mapLedgerEntry(entry: unknown): TachiyaPointsLedgerEntry | null {
 		return null;
 	}
 	const payload = entry as Record<string, unknown>;
+	const id = normalizeNonBlankString(payload.id);
+	const entryType = normalizeNonBlankString(payload.entry_type);
+	const sourceType = normalizeNonBlankString(payload.source_type);
+	const referenceId = normalizeNonBlankString(payload.reference_id);
+	const createdAt = normalizeNonBlankString(payload.created_at);
 	if (
-		typeof payload.id !== "string" ||
+		id === null ||
 		typeof payload.amount !== "number" ||
-		typeof payload.entry_type !== "string" ||
-		typeof payload.source_type !== "string" ||
-		typeof payload.reference_id !== "string" ||
-		typeof payload.created_at !== "string"
+		entryType === null ||
+		sourceType === null ||
+		referenceId === null ||
+		createdAt === null
 	) {
 		return null;
 	}
-	if (
-		payload.expires_at !== null &&
-		payload.expires_at !== undefined &&
-		typeof payload.expires_at !== "string"
-	) {
+	const expiresAt =
+		payload.expires_at === null || payload.expires_at === undefined
+			? null
+			: normalizeNonBlankString(payload.expires_at);
+	if (payload.expires_at !== null && payload.expires_at !== undefined && expiresAt === null) {
 		return null;
 	}
 	return {
-		id: payload.id,
+		id,
 		amount: payload.amount,
-		entryType: payload.entry_type,
-		sourceType: payload.source_type,
-		referenceId: payload.reference_id,
-		expiresAt: payload.expires_at ?? null,
-		createdAt: payload.created_at,
+		entryType,
+		sourceType,
+		referenceId,
+		expiresAt,
+		createdAt,
 	};
 }
 
@@ -200,7 +205,15 @@ function resolveResponseUserId(value: unknown, fallback: string): string | null 
 	if (value === undefined) {
 		return fallback;
 	}
-	return typeof value === "string" ? value : null;
+	return normalizeNonBlankString(value);
+}
+
+function normalizeNonBlankString(value: unknown): string | null {
+	if (typeof value !== "string") {
+		return null;
+	}
+	const normalizedValue = value.trim();
+	return normalizedValue || null;
 }
 
 function normalizeLedgerLimit(limit: number): number {
