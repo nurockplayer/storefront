@@ -77,10 +77,14 @@ export async function fetchTachiyaPointsBalance({
 		if (typeof body.balance !== "number") {
 			return { ok: false, reason: "request-failed" };
 		}
+		const responseUserId = resolveResponseUserId(body.user_id, normalizedUserId);
+		if (responseUserId === null) {
+			return { ok: false, reason: "request-failed" };
+		}
 
 		return {
 			ok: true,
-			userId: body.user_id ?? normalizedUserId,
+			userId: responseUserId,
 			balance: body.balance,
 		};
 	} catch {
@@ -118,6 +122,10 @@ export async function fetchTachiyaPointsLedger({
 		if (!Array.isArray(body.entries)) {
 			return { ok: false, reason: "request-failed" };
 		}
+		const responseUserId = resolveResponseUserId(body.user_id, normalizedUserId);
+		if (responseUserId === null) {
+			return { ok: false, reason: "request-failed" };
+		}
 
 		const entries: TachiyaPointsLedgerEntry[] = [];
 		for (const entry of body.entries) {
@@ -130,7 +138,7 @@ export async function fetchTachiyaPointsLedger({
 
 		return {
 			ok: true,
-			userId: body.user_id ?? normalizedUserId,
+			userId: responseUserId,
 			entries,
 		};
 	} catch {
@@ -186,6 +194,13 @@ function mapLedgerEntry(entry: unknown): TachiyaPointsLedgerEntry | null {
 		expiresAt: payload.expires_at ?? null,
 		createdAt: payload.created_at,
 	};
+}
+
+function resolveResponseUserId(value: unknown, fallback: string): string | null {
+	if (value === undefined) {
+		return fallback;
+	}
+	return typeof value === "string" ? value : null;
 }
 
 function normalizeLedgerLimit(limit: number): number {

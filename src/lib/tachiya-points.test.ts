@@ -143,6 +143,19 @@ describe("fetchTachiyaPointsBalance", () => {
 
 		expect(result).toEqual({ ok: false, reason: "request-failed" });
 	});
+
+	it("returns a failed result when the balance user id payload is invalid", async () => {
+		const fetchImpl = vi.fn(async () => Response.json({ user_id: 123, balance: 120 }));
+
+		const result = await fetchTachiyaPointsBalance({
+			userId: "user-1",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
 });
 
 describe("fetchTachiyaPointsLedger", () => {
@@ -195,6 +208,19 @@ describe("fetchTachiyaPointsLedger", () => {
 
 	it("returns a failed result when the ledger payload is invalid", async () => {
 		const fetchImpl = vi.fn(async () => Response.json({ user_id: "user-1", entries: [{ amount: "bad" }] }));
+
+		const result = await fetchTachiyaPointsLedger({
+			userId: "user-1",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
+
+	it("returns a failed result when the ledger user id payload is invalid", async () => {
+		const fetchImpl = vi.fn(async () => Response.json({ user_id: 123, entries: [] }));
 
 		const result = await fetchTachiyaPointsLedger({
 			userId: "user-1",
