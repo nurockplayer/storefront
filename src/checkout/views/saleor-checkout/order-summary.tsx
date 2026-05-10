@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { type CheckoutFragment, type OrderFragment } from "@/checkout/graphql";
 import {
 	buildTachiyaCouponsUrl,
+	clearTachiyaRedemptionToken,
 	resolveTachiyaRedemptionToken,
 	selectActiveTachiyaCoupon,
 } from "@/checkout/lib/tachiya-coupons";
@@ -192,6 +193,7 @@ export const OrderSummary: FC<OrderSummaryProps> = ({ checkout, order, editable 
 				};
 				const result = gqlData.data?.checkoutAddPromoCode;
 				if (result && (!result.errors || result.errors.length === 0)) {
+					clearTachiyaRedemptionToken(window.localStorage);
 					// Reload to let urql re-fetch checkout with the discount applied
 					window.location.reload();
 				}

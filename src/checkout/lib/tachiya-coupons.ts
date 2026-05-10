@@ -8,6 +8,7 @@ export interface TachiyaCouponResponseItem {
 
 interface RedemptionTokenStorage {
 	getItem(key: string): string | null;
+	removeItem?(key: string): void;
 	setItem(key: string, value: string): void;
 }
 
@@ -63,6 +64,16 @@ export function selectActiveTachiyaCoupon(payload: unknown): TachiyaCouponRespon
 	}
 
 	return null;
+}
+
+export function clearTachiyaRedemptionToken(
+	storage: Pick<RedemptionTokenStorage, "removeItem"> | null,
+): void {
+	try {
+		storage?.removeItem?.(TACHIYA_REDEMPTION_TOKEN_STORAGE_KEY);
+	} catch {
+		// Token cleanup is best-effort after a successful Saleor apply.
+	}
 }
 
 function normalizeNonBlankString(value: unknown): string | null {
