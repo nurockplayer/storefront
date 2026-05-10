@@ -148,9 +148,13 @@ function mapStreamerCatalog(payload: unknown): TachiyaStreamerCatalog | null {
 		return null;
 	}
 
-	const saleorProductIds = body.saleor_product_ids;
-	if (!saleorProductIds.every((id): id is string => typeof id === "string")) {
-		return null;
+	const saleorProductIds: string[] = [];
+	for (const id of body.saleor_product_ids) {
+		const normalizedId = normalizeNonBlankString(id);
+		if (normalizedId === null) {
+			return null;
+		}
+		saleorProductIds.push(normalizedId);
 	}
 
 	return {
@@ -185,7 +189,9 @@ function mapStreamerSummary(payload: unknown): TachiyaStreamerSummary | null {
 		return null;
 	}
 	const streamer = payload as Record<string, unknown>;
-	if (typeof streamer.slug !== "string" || typeof streamer.display_name !== "string") {
+	const slug = normalizeNonBlankString(streamer.slug);
+	const displayName = normalizeNonBlankString(streamer.display_name);
+	if (slug === null || displayName === null) {
 		return null;
 	}
 	if (
@@ -197,10 +203,18 @@ function mapStreamerSummary(payload: unknown): TachiyaStreamerSummary | null {
 	}
 
 	return {
-		slug: streamer.slug,
-		displayName: streamer.display_name,
+		slug,
+		displayName,
 		saleorCollectionId: streamer.saleor_collection_id ?? null,
 	};
+}
+
+function normalizeNonBlankString(value: unknown): string | null {
+	if (typeof value !== "string") {
+		return null;
+	}
+	const normalizedValue = value.trim();
+	return normalizedValue || null;
 }
 
 function normalizeLimit(limit: number): number {

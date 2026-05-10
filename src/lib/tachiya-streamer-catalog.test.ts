@@ -163,6 +163,68 @@ describe("fetchTachiyaStreamerCatalog", () => {
 
 		expect(result).toEqual({ ok: false, reason: "request-failed" });
 	});
+
+	it("returns request-failed when the catalog payload has blank strings", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				streamer: {
+					slug: "   ",
+					display_name: "Streamer One",
+					saleor_collection_id: "collection-1",
+				},
+				saleor_product_ids: ["product-1"],
+			}),
+		);
+
+		const blankSlug = await fetchTachiyaStreamerCatalog({
+			slug: "streamer-one",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(blankSlug).toEqual({ ok: false, reason: "request-failed" });
+
+		const blankDisplayNameFetch = vi.fn(async () =>
+			Response.json({
+				streamer: {
+					slug: "streamer-one",
+					display_name: "   ",
+					saleor_collection_id: "collection-1",
+				},
+				saleor_product_ids: ["product-1"],
+			}),
+		);
+
+		const blankDisplayName = await fetchTachiyaStreamerCatalog({
+			slug: "streamer-one",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl: blankDisplayNameFetch,
+		});
+
+		expect(blankDisplayName).toEqual({ ok: false, reason: "request-failed" });
+
+		const blankProductIdFetch = vi.fn(async () =>
+			Response.json({
+				streamer: {
+					slug: "streamer-one",
+					display_name: "Streamer One",
+					saleor_collection_id: "collection-1",
+				},
+				saleor_product_ids: ["product-1", "   "],
+			}),
+		);
+
+		const blankProductId = await fetchTachiyaStreamerCatalog({
+			slug: "streamer-one",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl: blankProductIdFetch,
+		});
+
+		expect(blankProductId).toEqual({ ok: false, reason: "request-failed" });
+	});
 });
 
 describe("fetchTachiyaStreamerList", () => {
@@ -232,6 +294,22 @@ describe("fetchTachiyaStreamerList", () => {
 		const fetchImpl = vi.fn(async () =>
 			Response.json({
 				streamers: [{ slug: "streamer-one", display_name: 1, saleor_collection_id: null }],
+			}),
+		);
+
+		const result = await fetchTachiyaStreamerList({
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
+
+	it("returns request-failed when the list payload has blank streamer strings", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				streamers: [{ slug: "streamer-one", display_name: "   ", saleor_collection_id: null }],
 			}),
 		);
 
