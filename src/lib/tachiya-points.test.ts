@@ -72,6 +72,20 @@ describe("fetchTachiyaPointsBalance", () => {
 		expect(fetchImpl).not.toHaveBeenCalled();
 	});
 
+	it("returns a skipped result when config is blank", async () => {
+		const fetchImpl = vi.fn();
+
+		const result = await fetchTachiyaPointsBalance({
+			userId: "user-1",
+			baseUrl: "   ",
+			internalSecret: "   ",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "missing-config" });
+		expect(fetchImpl).not.toHaveBeenCalled();
+	});
+
 	it("returns a skipped result when user id is missing", async () => {
 		const fetchImpl = vi.fn();
 
@@ -159,5 +173,19 @@ describe("fetchTachiyaPointsLedger", () => {
 		});
 
 		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
+
+	it("returns a skipped result when ledger config is blank", async () => {
+		const fetchImpl = vi.fn();
+
+		const result = await fetchTachiyaPointsLedger({
+			userId: "user-1",
+			baseUrl: "   ",
+			internalSecret: "   ",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "missing-config" });
+		expect(fetchImpl).not.toHaveBeenCalled();
 	});
 });

@@ -79,6 +79,20 @@ describe("fetchTachiyaStreamerCatalog", () => {
 		expect(fetchImpl).not.toHaveBeenCalled();
 	});
 
+	it("returns missing-config when the API URL or secret is blank", async () => {
+		const fetchImpl = vi.fn();
+
+		const result = await fetchTachiyaStreamerCatalog({
+			slug: "streamer-one",
+			baseUrl: "   ",
+			internalSecret: "   ",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "missing-config" });
+		expect(fetchImpl).not.toHaveBeenCalled();
+	});
+
 	it("returns missing-slug when slug is blank", async () => {
 		const fetchImpl = vi.fn();
 
@@ -168,6 +182,19 @@ describe("fetchTachiyaStreamerList", () => {
 		const result = await fetchTachiyaStreamerList({
 			baseUrl: "",
 			internalSecret: "",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "missing-config" });
+		expect(fetchImpl).not.toHaveBeenCalled();
+	});
+
+	it("returns missing-config when list config is blank", async () => {
+		const fetchImpl = vi.fn();
+
+		const result = await fetchTachiyaStreamerList({
+			baseUrl: "   ",
+			internalSecret: "   ",
 			fetchImpl,
 		});
 
