@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { type Metadata, type ResolvingMetadata } from "next";
 import { ProductListPaginatedDocument } from "@/gql/graphql";
+import { buildStreamerCatalogDescription } from "@/lib/tachiya-streamer-display";
 import { getTachiyaStreamerCatalog, type TachiyaStreamerCatalog } from "@/lib/tachiya-streamer-catalog";
 import { executePublicGraphQL } from "@/lib/graphql";
 import { getPaginatedListVariables } from "@/lib/utils";
@@ -45,9 +46,7 @@ export default async function Page(props: PageProps) {
 		{ label: "Home", href: `/${params.channel}` },
 		{ label: catalog.streamer.displayName, href: `/${params.channel}/streamers/${params.slug}` },
 	];
-	const description = catalog.streamer.saleorCollectionId
-		? `Saleor collection ${catalog.streamer.saleorCollectionId}`
-		: "Curated products from this streamer.";
+	const description = buildStreamerCatalogDescription(catalog.streamer);
 
 	return (
 		<>
