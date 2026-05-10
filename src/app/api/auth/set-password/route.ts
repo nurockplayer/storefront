@@ -16,12 +16,6 @@ const SET_PASSWORD_MUTATION = `
   }
 `;
 
-interface SetPasswordRequest {
-	email: string;
-	token: string;
-	password: string;
-}
-
 interface SetPasswordResult {
 	setPassword?: {
 		token?: string;
@@ -30,9 +24,26 @@ interface SetPasswordResult {
 	};
 }
 
+function getObject(value: unknown): Record<string, unknown> | undefined {
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		return undefined;
+	}
+	return value as Record<string, unknown>;
+}
+
+function getNonBlankString(value: unknown): string | undefined {
+	if (typeof value !== "string") {
+		return undefined;
+	}
+	const trimmedValue = value.trim();
+	return trimmedValue ? trimmedValue : undefined;
+}
+
 export async function POST(request: NextRequest) {
-	const body = (await request.json()) as SetPasswordRequest;
-	const { email, token, password } = body;
+	const body = getObject(await request.json().catch(() => null));
+	const email = getNonBlankString(body?.email);
+	const token = getNonBlankString(body?.token);
+	const password = getNonBlankString(body?.password);
 
 	if (!email || !token || !password) {
 		return NextResponse.json(
