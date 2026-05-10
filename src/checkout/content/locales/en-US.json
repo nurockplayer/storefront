@@ -12,6 +12,7 @@
 			"ledgerUnavailableDescription": "Recent activity is unavailable.",
 			"creditLabel": "Earned",
 			"debitLabel": "Used",
+			"expiresLabel": "Expires",
 			"sourceLabels": {
 				"tachigo": "Tachigo redemption",
 				"orderReward": "Order reward",

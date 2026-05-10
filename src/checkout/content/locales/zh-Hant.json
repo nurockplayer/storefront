@@ -12,6 +12,7 @@
 			"ledgerUnavailableDescription": "近期紀錄暫時無法顯示",
 			"creditLabel": "取得",
 			"debitLabel": "使用",
+			"expiresLabel": "到期日",
 			"sourceLabels": {
 				"tachigo": "Tachigo 兌換",
 				"orderReward": "訂單回饋",

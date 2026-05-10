@@ -12,6 +12,7 @@ export interface PointsBalanceMessages {
 	ledgerUnavailableDescription: string;
 	creditLabel: string;
 	debitLabel: string;
+	expiresLabel: string;
 	sourceLabels: {
 		tachigo: string;
 		orderReward: string;
@@ -51,6 +52,8 @@ export interface PointsLedgerEntryView {
 	sourceLabel: string;
 	referenceId: string;
 	createdAt: string;
+	expiresAt: string | null;
+	expiresLabel: string | null;
 }
 
 export function buildPointsBalanceView(
@@ -126,8 +129,17 @@ function buildLedgerView(
 			sourceLabel: getSourceLabel(entry.sourceType, messages),
 			referenceId: entry.referenceId,
 			createdAt: entry.createdAt,
+			expiresAt: entry.expiresAt,
+			expiresLabel: buildExpiresLabel(entry.expiresAt, messages),
 		})),
 	};
+}
+
+function buildExpiresLabel(expiresAt: string | null, messages: PointsBalanceMessages): string | null {
+	if (!expiresAt) {
+		return null;
+	}
+	return `${messages.expiresLabel} ${expiresAt.slice(0, 10)}`;
 }
 
 function getSourceLabel(sourceType: string, messages: PointsBalanceMessages): string {

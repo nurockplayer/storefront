@@ -13,6 +13,7 @@ const messages = {
 	ledgerUnavailableDescription: "Recent activity is unavailable",
 	creditLabel: "Earned",
 	debitLabel: "Used",
+	expiresLabel: "Expires",
 	sourceLabels: {
 		tachigo: "Tachigo redemption",
 		orderReward: "Order reward",
@@ -57,10 +58,36 @@ describe("buildPointsBalanceView", () => {
 						sourceLabel: "Tachigo redemption",
 						referenceId: "tachigo:redemption-1",
 						createdAt: "2026-01-02T00:00:00",
+						expiresAt: null,
+						expiresLabel: null,
 					},
 				],
 			},
 		});
+	});
+
+	it("formats credit expiration dates when present", () => {
+		const view = buildPointsBalanceView({ ok: true, userId: "user-1", balance: 1234 }, messages, {
+			ok: true,
+			userId: "user-1",
+			entries: [
+				{
+					id: "entry-1",
+					amount: 120,
+					entryType: "credit",
+					sourceType: "tachigo",
+					referenceId: "tachigo:redemption-1",
+					expiresAt: "2026-12-31T23:59:59",
+					createdAt: "2026-01-02T00:00:00",
+				},
+			],
+		});
+
+		if (view.status !== "ready") {
+			throw new Error("expected ready points view");
+		}
+		expect(view.ledger.entries[0]?.expiresAt).toBe("2026-12-31T23:59:59");
+		expect(view.ledger.entries[0]?.expiresLabel).toBe("Expires 2026-12-31");
 	});
 
 	it("falls back to the raw source type for unknown ledger sources", () => {
