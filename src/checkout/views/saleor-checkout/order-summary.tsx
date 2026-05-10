@@ -150,12 +150,13 @@ export const OrderSummary: FC<OrderSummaryProps> = ({ checkout, order, editable 
 				);
 				if (!redemptionToken) return;
 
-				const couponsRes = await fetch(
-					buildTachiyaCouponsUrl(
-						process.env.NEXT_PUBLIC_TACHIYA_API_URL ?? "http://localhost:8001",
-						redemptionToken,
-					),
+				const couponsUrl = buildTachiyaCouponsUrl(
+					process.env.NEXT_PUBLIC_TACHIYA_API_URL ?? "http://localhost:8001",
+					redemptionToken,
 				);
+				if (!couponsUrl) return;
+
+				const couponsRes = await fetch(couponsUrl);
 				if (!couponsRes.ok) return;
 
 				const coupons = (await couponsRes.json()) as CouponResponseItem[];

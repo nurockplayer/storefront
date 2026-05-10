@@ -74,4 +74,12 @@ describe("buildTachiyaCouponsUrl", () => {
 			"http://localhost:8001/coupons?redemption_token=token-1",
 		);
 	});
+
+	it("returns null when the API URL is blank", () => {
+		expect(buildTachiyaCouponsUrl("   ", "token-1")).toBeNull();
+	});
+
+	it("returns null when the redemption token is blank", () => {
+		expect(buildTachiyaCouponsUrl("http://localhost:8001/", "   ")).toBeNull();
+	});
 });
