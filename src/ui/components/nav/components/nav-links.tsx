@@ -1,8 +1,16 @@
 import Link from "next/link";
+import { FIXED_NAV_LINKS } from "./fixed-nav-links";
 import { NavLink } from "./nav-link";
 import { executePublicGraphQL } from "@/lib/graphql";
 import { MenuGetBySlugDocument } from "@/gql/graphql";
 import { CACHE_PROFILES, applyCacheProfile } from "@/lib/cache-manifest";
+
+const FixedNavLinks = () =>
+	FIXED_NAV_LINKS.map((item) => (
+		<NavLink key={item.href} href={item.href}>
+			{item.label}
+		</NavLink>
+	));
 
 export const NavLinks = async ({ channel }: { channel: string }) => {
 	"use cache";
@@ -17,12 +25,12 @@ export const NavLinks = async ({ channel }: { channel: string }) => {
 		// During build, if the API is unreachable, render minimal nav.
 		// The page will re-fetch when a user visits.
 		console.warn(`[NavLinks] Failed to fetch navigation for ${channel}:`, result.error.message);
-		return <NavLink href="/products">All</NavLink>;
+		return <FixedNavLinks />;
 	}
 
 	return (
 		<>
-			<NavLink href="/products">All</NavLink>
+			<FixedNavLinks />
 			{result.data.menu?.items?.map((item) => {
 				if (item.category) {
 					return (
