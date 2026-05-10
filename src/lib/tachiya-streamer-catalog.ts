@@ -191,21 +191,18 @@ function mapStreamerSummary(payload: unknown): TachiyaStreamerSummary | null {
 	const streamer = payload as Record<string, unknown>;
 	const slug = normalizeNonBlankString(streamer.slug);
 	const displayName = normalizeNonBlankString(streamer.display_name);
+	const saleorCollectionId = normalizeOptionalNonBlankString(streamer.saleor_collection_id);
 	if (slug === null || displayName === null) {
 		return null;
 	}
-	if (
-		streamer.saleor_collection_id !== null &&
-		streamer.saleor_collection_id !== undefined &&
-		typeof streamer.saleor_collection_id !== "string"
-	) {
+	if (saleorCollectionId === undefined) {
 		return null;
 	}
 
 	return {
 		slug,
 		displayName,
-		saleorCollectionId: streamer.saleor_collection_id ?? null,
+		saleorCollectionId,
 	};
 }
 
@@ -215,6 +212,13 @@ function normalizeNonBlankString(value: unknown): string | null {
 	}
 	const normalizedValue = value.trim();
 	return normalizedValue || null;
+}
+
+function normalizeOptionalNonBlankString(value: unknown): string | null | undefined {
+	if (value === null || value === undefined) {
+		return null;
+	}
+	return normalizeNonBlankString(value) ?? undefined;
 }
 
 function normalizeLimit(limit: number): number {
