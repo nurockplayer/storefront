@@ -9,9 +9,11 @@ on:
       - ".github/workflows/pr-ci.yml"
       - ".github/workflows/dependabot-automerge.yml"
       - ".github/workflows/weekly-release-pr.yml"
+      - "playwright.config.ts"
       - "package.json"
       - "pnpm-lock.yaml"
       - "src/**"
+      - "tests/e2e/**"
       - "messages/**"
       - "skills/**"
       - "public/**"
@@ -23,9 +25,11 @@ on:
       - ".github/workflows/pr-ci.yml"
       - ".github/workflows/dependabot-automerge.yml"
       - ".github/workflows/weekly-release-pr.yml"
+      - "playwright.config.ts"
       - "package.json"
       - "pnpm-lock.yaml"
       - "src/**"
+      - "tests/e2e/**"
       - "messages/**"
       - "skills/**"
       - "public/**"
@@ -112,7 +116,38 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run tests
-        run: pnpm run test:run
+        run: pnpm run test:coverage
+
+  e2e:
+    name: Browser smoke tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout storefront
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Generate GraphQL types
+        run: pnpm run generate:all
+
+      - name: Run browser smoke tests
+        run: pnpm run test:e2e
 
   build:
     name: Build
