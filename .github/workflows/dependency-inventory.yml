@@ -1,0 +1,27 @@
+name: Dependency inventory scan
+
+on:
+  schedule:
+    - cron: "41 3 * * 2"
+  workflow_dispatch:
+
+concurrency:
+  group: dependency-inventory-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+jobs:
+  osv-pnpm-lockfile:
+    name: OSV pnpm lockfile inventory
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.5
+    with:
+      scan-args: |-
+        --lockfile=pnpm-lock.yaml
+      results-file-name: osv-pnpm-lockfile.sarif
+      upload-sarif: true
+      fail-on-vuln: false
+      matrix-property: pnpm-
