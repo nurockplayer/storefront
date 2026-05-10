@@ -9,15 +9,12 @@ import {
 } from "@/gql/graphql";
 import { executePublicGraphQL } from "@/lib/graphql";
 import { selectHomepageStreamers } from "@/lib/tachiya-homepage-streamers";
+import { homepageMetadata } from "@/lib/tachiya-site-metadata";
 import { getTachiyaStreamerList, type TachiyaStreamerSummary } from "@/lib/tachiya-streamer-catalog";
 import { ProductList } from "@/ui/components/product-list";
 import { Banner } from "@/ui/components/banner";
 
-export const metadata = {
-	title: "ACME Storefront, powered by Saleor & Next.js",
-	description:
-		"Storefront Next.js Example for building performant e-commerce experiences with Saleor - the composable, headless commerce platform for global brands.",
-};
+export const metadata = homepageMetadata;
 
 async function getFeaturedProducts(channel: string) {
 	const result = await executePublicGraphQL(ProductListByCollectionDocument, {
