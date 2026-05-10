@@ -11,7 +11,14 @@
 			"ledgerEmptyDescription": "目前沒有近期點數紀錄",
 			"ledgerUnavailableDescription": "近期紀錄暫時無法顯示",
 			"creditLabel": "取得",
-			"debitLabel": "使用"
+			"debitLabel": "使用",
+			"sourceLabels": {
+				"tachigo": "Tachigo 兌換",
+				"orderReward": "訂單回饋",
+				"checkout": "結帳折抵",
+				"manual": "人工調整",
+				"referral": "推薦回饋"
+			}
 		}
 	}
 }

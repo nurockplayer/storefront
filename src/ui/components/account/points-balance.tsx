@@ -36,6 +36,13 @@ export async function PointsBalance({ userId }: PointsBalanceProps) {
 			ledgerUnavailableDescription: t("ledgerUnavailableDescription"),
 			creditLabel: t("creditLabel"),
 			debitLabel: t("debitLabel"),
+			sourceLabels: {
+				tachigo: t("sourceLabels.tachigo"),
+				orderReward: t("sourceLabels.orderReward"),
+				checkout: t("sourceLabels.checkout"),
+				manual: t("sourceLabels.manual"),
+				referral: t("sourceLabels.referral"),
+			},
 		},
 		ledgerResult,
 	);
@@ -86,7 +93,7 @@ function PointsLedger({ ledger }: { ledger: PointsLedgerView }) {
 								<div className="min-w-0">
 									<div className="flex items-center gap-1">
 										<span className="font-medium">{entry.kindLabel}</span>
-										<span className="truncate text-muted-foreground">{entry.sourceType}</span>
+										<span className="truncate text-muted-foreground">{entry.sourceLabel}</span>
 									</div>
 									<div className="truncate text-muted-foreground" title={entry.referenceId}>
 										{entry.referenceId}

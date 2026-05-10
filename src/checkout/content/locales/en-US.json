@@ -11,7 +11,14 @@
 			"ledgerEmptyDescription": "No recent points activity",
 			"ledgerUnavailableDescription": "Recent activity is unavailable.",
 			"creditLabel": "Earned",
-			"debitLabel": "Used"
+			"debitLabel": "Used",
+			"sourceLabels": {
+				"tachigo": "Tachigo redemption",
+				"orderReward": "Order reward",
+				"checkout": "Checkout",
+				"manual": "Manual adjustment",
+				"referral": "Referral reward"
+			}
 		}
 	}
 }
