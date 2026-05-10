@@ -54,7 +54,7 @@ export async function fetchTachiyaStreamerCatalog({
 		return { ok: false, reason: "missing-slug" };
 	}
 
-	if (!baseUrl || !internalSecret) {
+	if (!hasTachiyaConfig(baseUrl, internalSecret)) {
 		return { ok: false, reason: "missing-config" };
 	}
 
@@ -87,7 +87,7 @@ export async function fetchTachiyaStreamerList({
 	limit = 100,
 	fetchImpl = fetch,
 }: FetchTachiyaStreamerListOptions): Promise<TachiyaStreamerListResult> {
-	if (!baseUrl || !internalSecret) {
+	if (!hasTachiyaConfig(baseUrl, internalSecret)) {
 		return { ok: false, reason: "missing-config" };
 	}
 
@@ -201,4 +201,8 @@ function normalizeLimit(limit: number): number {
 		return 100;
 	}
 	return Math.min(100, Math.max(1, Math.trunc(limit)));
+}
+
+function hasTachiyaConfig(baseUrl: string | undefined, internalSecret: string | undefined): boolean {
+	return Boolean(baseUrl?.trim() && internalSecret?.trim());
 }
