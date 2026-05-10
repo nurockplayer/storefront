@@ -175,17 +175,44 @@ function formatVariablesForLog(variables: Record<string, unknown>): string {
 	return parts.length > 0 ? `(${parts.join(", ")})` : "";
 }
 
+export function parseRuntimeInteger(
+	value: string | undefined,
+	options: { fallback: number; min: number; max: number },
+): number {
+	const normalizedValue = value?.trim() ?? "";
+	if (!/^-?\d+$/.test(normalizedValue)) {
+		return options.fallback;
+	}
+
+	const parsedValue = Number.parseInt(normalizedValue, 10);
+	if (!Number.isSafeInteger(parsedValue) || parsedValue < options.min) {
+		return options.fallback;
+	}
+	if (parsedValue > options.max) {
+		return options.max;
+	}
+	return parsedValue;
+}
+
 const requestQueue = new RequestQueue(
-	parseInt(process.env.SALEOR_MAX_CONCURRENT_REQUESTS || "3", 10),
-	parseInt(process.env.SALEOR_MIN_REQUEST_DELAY_MS || "200", 10),
+	parseRuntimeInteger(process.env.SALEOR_MAX_CONCURRENT_REQUESTS, { fallback: 3, min: 1, max: 20 }),
+	parseRuntimeInteger(process.env.SALEOR_MIN_REQUEST_DELAY_MS, { fallback: 200, min: 0, max: 10000 }),
 );
 
 function getRetryConfig() {
 	const buildRetries = process.env.NEXT_BUILD_RETRIES;
-	const timeoutMs = parseInt(process.env.SALEOR_REQUEST_TIMEOUT_MS || "15000", 10);
+	const timeoutMs = parseRuntimeInteger(process.env.SALEOR_REQUEST_TIMEOUT_MS, {
+		fallback: 15000,
+		min: 1000,
+		max: 120000,
+	});
 
 	if (buildRetries !== undefined) {
-		return { maxRetries: parseInt(buildRetries, 10), delayMs: 500, timeoutMs };
+		return {
+			maxRetries: parseRuntimeInteger(buildRetries, { fallback: 3, min: 0, max: 10 }),
+			delayMs: 500,
+			timeoutMs,
+		};
 	}
 	return { maxRetries: 3, delayMs: 1000, timeoutMs };
 }
