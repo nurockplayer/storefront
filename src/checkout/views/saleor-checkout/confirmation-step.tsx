@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CheckCircle, Mail, MapPin, Package, CreditCard } from "lucide-react";
 import { type CheckoutFragment } from "@/checkout/graphql";
 import { localeConfig } from "@/config/locale";
+import { buildCheckoutConfirmationReference } from "./confirmation-reference";
 
 interface ConfirmationStepProps {
 	checkout: CheckoutFragment;
@@ -18,19 +19,14 @@ function formatAddress(address: CheckoutFragment["shippingAddress"] | CheckoutFr
 		.join(", ");
 }
 
-/**
- * Order confirmation step (demo version).
- * Shows after successful payment in demo mode.
- * Note: Order summary is shown in the sidebar, so not duplicated here.
- */
+/** Fallback confirmation step shown inside the checkout flow. */
 export const ConfirmationStep: FC<ConfirmationStepProps> = ({ checkout }) => {
 	const channel = checkout.channel.slug;
 	const shippingAddress = checkout.shippingAddress;
 	const billingAddress = checkout.billingAddress;
 	const email = checkout.email || "";
 
-	// Generate a demo order number
-	const [orderNumber] = useState(() => `DEMO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
+	const [checkoutReference] = useState(() => buildCheckoutConfirmationReference(checkout.id));
 
 	// Calculate estimated delivery (7 days from now)
 	const [formattedDelivery] = useState(() => {
@@ -44,9 +40,9 @@ export const ConfirmationStep: FC<ConfirmationStepProps> = ({ checkout }) => {
 
 	return (
 		<div className="space-y-8">
-			{/* Demo Banner */}
+			{/* Test payment notice */}
 			<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center text-sm text-amber-800">
-				<strong>Demo Mode:</strong> This is a simulated order confirmation. No real payment was processed.
+				<strong>Test payment:</strong> Your checkout was submitted through the test payment flow.
 			</div>
 
 			{/* Success Header */}
@@ -58,7 +54,7 @@ export const ConfirmationStep: FC<ConfirmationStepProps> = ({ checkout }) => {
 					</div>
 				</div>
 				<div>
-					<p className="text-muted-foreground">Order {orderNumber}</p>
+					<p className="text-muted-foreground">Checkout reference {checkoutReference}</p>
 					<h1 className="mt-1 text-2xl font-semibold">Thank you for your order!</h1>
 				</div>
 			</div>
