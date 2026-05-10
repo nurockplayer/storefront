@@ -1,10 +1,29 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildTachiyaStreamerCatalogUrl, fetchTachiyaStreamerCatalog } from "./tachiya-streamer-catalog";
+import {
+	buildTachiyaStreamerCatalogUrl,
+	buildTachiyaStreamerListUrl,
+	fetchTachiyaStreamerCatalog,
+	fetchTachiyaStreamerList,
+} from "./tachiya-streamer-catalog";
 
 describe("buildTachiyaStreamerCatalogUrl", () => {
 	it("builds an encoded streamer catalog URL", () => {
 		expect(buildTachiyaStreamerCatalogUrl("http://localhost:8001/", "Streamer One")).toBe(
 			"http://localhost:8001/streamers/Streamer%20One/catalog",
+		);
+	});
+});
+
+describe("buildTachiyaStreamerListUrl", () => {
+	it("builds a bounded active streamer list URL", () => {
+		expect(buildTachiyaStreamerListUrl("http://localhost:8001/", 100)).toBe(
+			"http://localhost:8001/streamers?limit=100",
+		);
+		expect(buildTachiyaStreamerListUrl("http://localhost:8001", 0)).toBe(
+			"http://localhost:8001/streamers?limit=1",
+		);
+		expect(buildTachiyaStreamerListUrl("http://localhost:8001", 999)).toBe(
+			"http://localhost:8001/streamers?limit=100",
 		);
 	});
 });
@@ -97,6 +116,73 @@ describe("fetchTachiyaStreamerCatalog", () => {
 
 		const result = await fetchTachiyaStreamerCatalog({
 			slug: "streamer-one",
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "request-failed" });
+	});
+});
+
+describe("fetchTachiyaStreamerList", () => {
+	it("fetches active streamers with the internal secret header", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				streamers: [
+					{
+						slug: "streamer-one",
+						display_name: "Streamer One",
+						saleor_collection_id: "collection-1",
+					},
+				],
+			}),
+		);
+
+		const result = await fetchTachiyaStreamerList({
+			baseUrl: "http://localhost:8001",
+			internalSecret: "shared-secret",
+			limit: 100,
+			fetchImpl,
+		});
+
+		expect(result).toEqual({
+			ok: true,
+			streamers: [
+				{
+					slug: "streamer-one",
+					displayName: "Streamer One",
+					saleorCollectionId: "collection-1",
+				},
+			],
+		});
+		expect(fetchImpl).toHaveBeenCalledWith("http://localhost:8001/streamers?limit=100", {
+			cache: "no-store",
+			headers: { "X-Tachiya-Internal-Secret": "shared-secret" },
+		});
+	});
+
+	it("returns missing-config when list config is missing", async () => {
+		const fetchImpl = vi.fn();
+
+		const result = await fetchTachiyaStreamerList({
+			baseUrl: "",
+			internalSecret: "",
+			fetchImpl,
+		});
+
+		expect(result).toEqual({ ok: false, reason: "missing-config" });
+		expect(fetchImpl).not.toHaveBeenCalled();
+	});
+
+	it("returns request-failed when the list payload is invalid", async () => {
+		const fetchImpl = vi.fn(async () =>
+			Response.json({
+				streamers: [{ slug: "streamer-one", display_name: 1, saleor_collection_id: null }],
+			}),
+		);
+
+		const result = await fetchTachiyaStreamerList({
 			baseUrl: "http://localhost:8001",
 			internalSecret: "shared-secret",
 			fetchImpl,
