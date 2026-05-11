@@ -19,7 +19,7 @@ pnpm test                   # Run tests (watch mode)
 
 ### Autonomous Review Gate
 
-Autonomous PRs must wait for both CodeRabbit and `chatgpt-codex-connector` review/readback before merge. If either reviewer raises an actionable finding, fix it before merge or leave a technical rationale comment explaining why it is not adopted, then close out the thread/comment where GitHub permits it.
+Autonomous PRs must wait for both CodeRabbit and `chatgpt-codex-connector` review/readback before merge. When `chatgpt-codex-connector` finds no issues, it may mark the first PR comment with a reaction instead of leaving a comment; only comment `@codex review` when there is no reaction and no review/comment. If either reviewer raises an actionable finding, fix it before merge or leave a technical rationale comment explaining why it is not adopted, then close out the thread/comment where GitHub permits it.
 
 CodeRabbit is configured by `.coderabbit.yaml` to auto-review PRs targeting any base branch. Do not treat a green CodeRabbit status alone as review completion because skipped reviews can still report success.
 

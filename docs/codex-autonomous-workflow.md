@@ -51,7 +51,7 @@ Before merging any autonomous PR, the controller must complete a fresh review re
 
 1. Confirm latest PR head SHA, base branch, mergeability, and CI/check status.
 2. Confirm CodeRabbit has produced a real review for the PR, or document why it is unavailable.
-3. Confirm `chatgpt-codex-connector` has produced a review/comment when expected, or document why it is unavailable.
+3. Confirm `chatgpt-codex-connector` has produced a review/comment, or that it marked the first PR comment with a reaction. Only comment `@codex review` when neither signal exists.
 4. For every actionable automated review finding, choose exactly one path before merge:
    - fix it, push the fix, and rerun relevant validation;
    - leave a technical rationale comment explaining why it is not adopted.
