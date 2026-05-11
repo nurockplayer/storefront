@@ -50,8 +50,8 @@ Model names are preferred profiles, not hard requirements. If a model is unavail
 Before merging any autonomous PR, the controller must complete a fresh review readback:
 
 1. Confirm latest PR head SHA, base branch, mergeability, and CI/check status.
-2. Confirm CodeRabbit has produced a real review for the PR, or document why it is unavailable.
-3. Confirm `chatgpt-codex-connector` has produced a review/comment when expected, or document why it is unavailable.
+2. Confirm CodeRabbit has produced a real review for the PR. If CodeRabbit explicitly reports a rate limit, do not keep retrying it on the same PR; the controller must perform a self-review and leave replacement review evidence.
+3. Confirm `chatgpt-codex-connector` has produced a review/comment, or that it marked the first PR comment with a reaction. Only comment `@codex review` when neither signal exists.
 4. For every actionable automated review finding, choose exactly one path before merge:
    - fix it, push the fix, and rerun relevant validation;
    - leave a technical rationale comment explaining why it is not adopted.
@@ -59,6 +59,19 @@ Before merging any autonomous PR, the controller must complete a fresh review re
 6. Re-read the latest head SHA after any fix before merge.
 
 CodeRabbit is configured in `.coderabbit.yaml` with `reviews.auto_review.base_branches: [".*"]` so auto review can run for PRs targeting any branch, not just the default branch.
+
+## PR Scope Police Contract
+
+Before opening a PR, satisfy `.github/workflows/pr-scope-police.yml` so the PR is not bounced by CI:
+
+- PR title must start with `[frontend]`, `[discussion]`, or `[chore]`.
+- PR body must reference a tracking issue or PR, such as `#42` or `nurockplayer/tachiya#123`.
+- PR body must include a `Source of truth: ...` line, not only a heading.
+- PR body must include a `Depends on PR: none` or `Depends on PR: #123` line, not only a heading.
+- PR body must include a `本 PR 明確不做` section.
+- Changed files must stay at or below 35; diff lines must stay at or below 1000, with a warning above 600.
+- PRs touching more than three frontend surfaces without package changes trigger a split warning.
+- Use the `scope-exception` label only after an explicit scope review.
 
 ## Validation Policy
 
