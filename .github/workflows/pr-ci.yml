@@ -50,6 +50,7 @@ jobs:
   diff-check:
     name: Diff whitespace check
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout storefront
@@ -69,6 +70,7 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout storefront
@@ -94,6 +96,7 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout storefront
@@ -122,6 +125,7 @@ jobs:
   e2e:
     name: Browser smoke tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout storefront
@@ -153,6 +157,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout storefront
