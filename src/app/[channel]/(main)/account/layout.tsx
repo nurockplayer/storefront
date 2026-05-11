@@ -5,6 +5,7 @@ import { AccountNav } from "@/ui/components/account/account-nav";
 import { AccountSkeleton } from "@/ui/components/account/account-skeleton";
 import { AccountProvider } from "@/ui/components/account/account-context";
 import { PointsBalance, PointsBalanceSkeleton } from "@/ui/components/account/points-balance";
+import { AuthProvider } from "@/lib/auth";
 import { getCurrentUser } from "./get-current-user";
 
 export const metadata = {
@@ -29,13 +30,13 @@ async function AccountShell({ children }: { children: ReactNode }) {
 	}
 
 	if (!hasCookies) {
-		return <LoginForm />;
+		return <AccountLoginFallback />;
 	}
 
 	const user = await getCurrentUser();
 
 	if (!user) {
-		return <LoginForm />;
+		return <AccountLoginFallback />;
 	}
 
 	return (
@@ -52,5 +53,13 @@ async function AccountShell({ children }: { children: ReactNode }) {
 				</div>
 			</div>
 		</AccountProvider>
+	);
+}
+
+function AccountLoginFallback() {
+	return (
+		<AuthProvider>
+			<LoginForm />
+		</AuthProvider>
 	);
 }
