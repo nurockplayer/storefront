@@ -17,6 +17,14 @@ pnpm run dev                # Development server
 pnpm test                   # Run tests (watch mode)
 ```
 
+### Autonomous Review Gate
+
+Autonomous PRs must wait for both CodeRabbit and `chatgpt-codex-connector` review/readback before merge. If either reviewer raises an actionable finding, fix it before merge or leave a technical rationale comment explaining why it is not adopted, then close out the thread/comment where GitHub permits it.
+
+CodeRabbit is configured by `.coderabbit.yaml` to auto-review PRs targeting any base branch. Do not treat a green CodeRabbit status alone as review completion because skipped reviews can still report success.
+
+Worker profiles, routing rules, and merge-readiness policy are defined in [`docs/codex-autonomous-workflow.md`](docs/codex-autonomous-workflow.md).
+
 ### Skills Architecture
 
 Skills are organized in two locations:
