@@ -8,7 +8,6 @@ on:
     paths:
       - ".github/workflows/pr-ci.yml"
       - ".github/workflows/dependabot-automerge.yml"
-      - ".github/workflows/weekly-release-pr.yml"
       - "playwright.config.ts"
       - "package.json"
       - "pnpm-lock.yaml"
@@ -24,7 +23,6 @@ on:
     paths:
       - ".github/workflows/pr-ci.yml"
       - ".github/workflows/dependabot-automerge.yml"
-      - ".github/workflows/weekly-release-pr.yml"
       - "playwright.config.ts"
       - "package.json"
       - "pnpm-lock.yaml"
