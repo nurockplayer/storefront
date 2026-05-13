@@ -12,14 +12,14 @@ function buildPostRequest(body: unknown) {
 	return {
 		headers: new Headers({ authorization: "Bearer test-secret" }),
 		text: async () => JSON.stringify(body),
-	} as Request;
+	} as unknown as Request;
 }
 
 function buildGetRequest(query: string) {
 	return {
 		headers: new Headers({ authorization: "Bearer test-secret" }),
 		nextUrl: new URL(`https://store.test/api/revalidate${query}`),
-	} as Request;
+	} as unknown as Request;
 }
 
 describe("POST /api/revalidate", () => {

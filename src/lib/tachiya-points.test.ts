@@ -173,10 +173,7 @@ describe("fetchTachiyaPointsBalance", () => {
 	it.each([Number.NaN, Number.POSITIVE_INFINITY])(
 		"returns a failed result when the balance is not finite",
 		async (balance) => {
-			const fetchImpl = vi.fn(async () => ({
-				ok: true,
-				json: async () => ({ user_id: "user-1", balance }),
-			}));
+			const fetchImpl = vi.fn(async () => Response.json({ user_id: "user-1", balance }));
 
 			const result = await fetchTachiyaPointsBalance({
 				userId: "user-1",
@@ -336,9 +333,8 @@ describe("fetchTachiyaPointsLedger", () => {
 	it.each([Number.NaN, Number.POSITIVE_INFINITY])(
 		"returns a failed result when ledger amount is not finite",
 		async (amount) => {
-			const fetchImpl = vi.fn(async () => ({
-				ok: true,
-				json: async () => ({
+			const fetchImpl = vi.fn(async () =>
+				Response.json({
 					user_id: "user-1",
 					entries: [
 						{
@@ -352,7 +348,7 @@ describe("fetchTachiyaPointsLedger", () => {
 						},
 					],
 				}),
-			}));
+			);
 
 			const result = await fetchTachiyaPointsLedger({
 				userId: "user-1",
